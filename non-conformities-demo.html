@@ -383,6 +383,7 @@
       .header { padding-top: 16px; }
       .cols-2 { grid-template-columns: 1fr; }
       .date-time-row { grid-template-columns: 1fr; }
+      input, select, textarea { font-size: 16px; }
     }
     @supports (-webkit-touch-callout: none) {
       .date-time-row { grid-template-columns: 1fr; }
@@ -1036,10 +1037,15 @@
           if (resp.ok) {
             const data = await resp.json();
             const a = data.address || {};
-            const via = [a.road, a.house_number].filter(Boolean).join(" ");
+            const via = a.road || a.pedestrian || a.footway || a.path || "";
+            const civico = a.house_number || "";
             const citta = a.city || a.town || a.village || a.municipality || "";
-            const provincia = a.county || a.state_district || a.state || "";
-            indirizzo = [via, citta, provincia].filter(Boolean).join(", ");
+            const cap = a.postcode || "";
+            const provincia = a.county || a.state_district || "";
+            const regione = a.state || "";
+            const paese = a.country || "";
+            const viaCompleta = [via, civico].filter(Boolean).join(" ").trim();
+            indirizzo = [viaCompleta, citta, cap, provincia, regione, paese].filter(Boolean).join(", ");
             if (!indirizzo && data.display_name) indirizzo = String(data.display_name);
           }
         } catch {
