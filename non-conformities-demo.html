@@ -175,6 +175,14 @@
       max-width: 100%;
       overflow: hidden;
     }
+    .required-field {
+      background: #fff8bf;
+      border-color: #dccb67;
+    }
+    .required-field:focus {
+      outline: 2px solid #e6d676;
+      outline-offset: 1px;
+    }
     textarea { min-height: 80px; resize: vertical; }
     .menu-buttons { display: grid; gap: 10px; margin-top: 8px; }
     .cards { display: grid; gap: 10px; }
@@ -201,6 +209,8 @@
     .stato-Inviata { background: #e7f8ee; color: #197e43; border-color: #c6edd6; }
     .inline { display: flex; gap: 8px; }
     .inline .btn { flex: 1; }
+    .inline.tight .btn { flex: 0 0 auto; }
+    .inline.tight input { flex: 1 1 auto; }
     .images {
       margin-top: 8px;
       display: grid;
@@ -253,6 +263,22 @@
     }
     .alert.error { display: block; background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
     .alert.ok { display: block; background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
+    .toast {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 9;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      display: none;
+      box-shadow: 0 8px 18px rgba(16, 28, 42, 0.28);
+    }
+    .toast.show { display: block; }
+    .toast.ok { background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
+    .toast.error { background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
     .footer-actions {
       position: sticky;
       bottom: 0;
@@ -367,7 +393,10 @@
             </div>
             <div>
               <label for="luogo">Posizione geografica (indirizzo) *</label>
-              <input id="luogo" placeholder="Via, citta, provincia">
+              <div class="inline tight">
+                <input id="luogo" placeholder="Via, citta, provincia">
+                <button class="btn secondary" id="btnIndirizzo" type="button">Carica via/citta</button>
+              </div>
             </div>
             <div>
               <label for="operatore">Operatore / Segnalatore *</label>
@@ -446,6 +475,7 @@
           <button class="btn secondary block" id="btnEsportaJson">Esporta JSON</button>
         </section>
       </main>
+      <div class="toast" id="toastNotifica"></div>
     </div>
   </div>
 
@@ -465,12 +495,14 @@
     const listaObs = document.getElementById("listaObs");
     const grigliaImg = document.getElementById("grigliaImg");
     const gpsCoord = document.getElementById("gpsCoord");
+    const toastNotifica = document.getElementById("toastNotifica");
 
     const campi = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","stato","dataNc","oraNc","riferimento","note"];
     const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","dataNc","oraNc","riferimento"];
 
     let archivio = caricaArchivio();
     let bozza = null;
+    let timerToast = null;
 
     function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
     function dataAttuale() { return new Date().toISOString().slice(0, 10); }
@@ -566,6 +598,12 @@
           bozza[c] = el.value;
           aggiornaAnteprima();
         };
+      });
+      obbligatori.forEach(c => {
+        const el = document.getElementById(c);
+        if (!el) return;
+        el.classList.add("required-field");
+        el.setAttribute("required", "required");
       });
       gpsCoord.value = bozza.gpsCoord || "";
       nascondiAlert();
@@ -711,10 +749,21 @@
     function mostraAlert(tipo, msg) {
       alertForm.className = "alert " + (tipo === "ok" ? "ok" : "error");
       alertForm.textContent = msg;
+      mostraToast(tipo, msg);
     }
     function nascondiAlert() {
       alertForm.className = "alert";
       alertForm.textContent = "";
+    }
+    function mostraToast(tipo, msg) {
+      if (!toastNotifica) return;
+      toastNotifica.className = "toast show " + (tipo === "ok" ? "ok" : "error");
+      toastNotifica.textContent = msg;
+      if (timerToast) clearTimeout(timerToast);
+      timerToast = setTimeout(() => {
+        toastNotifica.className = "toast";
+        toastNotifica.textContent = "";
+      }, 3600);
     }
 
     function submitNc() {
@@ -726,6 +775,7 @@
       aggiornaAnteprima();
       mostraAlert("ok", "NC inviata e salvata localmente.");
       renderListaNc();
+      mostraVista("menu");
     }
 
     function salvaNc() {
@@ -780,6 +830,53 @@
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
+    function acquisisciPosizioneRaw() {
+      return new Promise((resolve, reject) => {
+        if (!("geolocation" in navigator)) {
+          reject(new Error("Geolocalizzazione non supportata."));
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve(pos),
+          err => reject(err),
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
+      });
+    }
+    async function acquisisciIndirizzo() {
+      try {
+        const pos = await acquisisciPosizioneRaw();
+        const lat = pos.coords.latitude.toFixed(6);
+        const lon = pos.coords.longitude.toFixed(6);
+        bozza.gpsCoord = lat + ", " + lon;
+        gpsCoord.value = bozza.gpsCoord;
+
+        let indirizzo = "";
+        try {
+          const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon + "&addressdetails=1";
+          const resp = await fetch(url, { headers: { "Accept": "application/json" } });
+          if (resp.ok) {
+            const data = await resp.json();
+            const a = data.address || {};
+            const via = [a.road, a.house_number].filter(Boolean).join(" ");
+            const citta = a.city || a.town || a.village || a.municipality || "";
+            const provincia = a.county || a.state_district || a.state || "";
+            indirizzo = [via, citta, provincia].filter(Boolean).join(", ");
+            if (!indirizzo && data.display_name) indirizzo = String(data.display_name);
+          }
+        } catch {
+          indirizzo = "";
+        }
+
+        bozza.luogo = indirizzo || (lat + ", " + lon);
+        const luogoEl = document.getElementById("luogo");
+        if (luogoEl) luogoEl.value = bozza.luogo;
+        aggiornaAnteprima();
+        mostraAlert("ok", indirizzo ? "Indirizzo caricato da posizione." : "Posizione acquisita, indirizzo non disponibile.");
+      } catch {
+        mostraAlert("error", "Impossibile acquisire posizione/indirizzo.");
+      }
+    }
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, function(ch) {
@@ -812,6 +909,7 @@
     document.getElementById("inputUpload").addEventListener("change", e => aggiungiFile(e.target.files));
     document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
     document.getElementById("btnGps").addEventListener("click", acquisisciPosizione);
+    document.getElementById("btnIndirizzo").addEventListener("click", acquisisciIndirizzo);
 
     mostraVista("menu");
   </script>
