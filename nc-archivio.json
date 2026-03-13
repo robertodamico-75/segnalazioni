@@ -1,5 +1,5 @@
-[
-  {
+{
+  "1": {
     "id": 1,
     "titolo": "Demo",
     "descrizione": "problema monoblocco 1234",
@@ -17,4 +17,4 @@
     "osservazioni": [],
     "immagini": []
   }
-]
+}

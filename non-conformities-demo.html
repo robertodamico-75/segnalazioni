@@ -424,8 +424,8 @@
         <section class="panel">
           <h2>Archivio JSON</h2>
           <div class="menu-buttons">
-            <button class="btn secondary block" id="btnApriArchivio" hidden>Apri archivio JSON</button>
-            <button class="btn secondary block" id="btnNuovoArchivio" hidden>Crea / collega archivio JSON</button>
+            <button class="btn secondary block" id="btnApriArchivio">Apri archivio JSON</button>
+            <button class="btn secondary block" id="btnNuovoArchivio">Crea / collega archivio JSON</button>
           </div>
           <input id="inputArchivio" type="file" accept="application/json,.json" hidden>
           <div id="statoArchivio" style="font-size:0.8rem;color:#4f6278;margin-top:8px;">Archivio fisso: ./nc-archivio.json</div>
@@ -433,7 +433,7 @@
         <section class="panel">
           <h2>Note demo</h2>
           <div style="font-size:0.84rem;color:#5d6f85;line-height:1.4;">
-            Flusso dedicato alla raccolta problematiche su installazioni di prodotti ALPAC per la gestione del foro finestra. I dati vengono salvati su file JSON collegato (oppure esportati in download JSON se il browser non supporta il salvataggio diretto).
+            Flusso dedicato alla raccolta problematiche su installazioni di prodotti ALPAC per la gestione del foro finestra. I dati vengono salvati su file JSON collegato oppure in cache locale browser; l'export JSON resta disponibile dal pulsante dedicato.
           </div>
         </section>
       </main>
@@ -543,7 +543,7 @@
           <button class="btn secondary block" id="aggiungiObs" type="button">+ Aggiungi riga</button>
         </section>
 
-        <section class="panel">
+        <section class="panel" hidden>
           <h2>Anteprima JSON</h2>
           <pre id="anteprimaJson" class="json">{}</pre>
         </section>
@@ -571,7 +571,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v2026.03.13.1";
+    const APP_VERSION = "v2026.03.13.3";
     const viste = {
       menu: document.getElementById("viewMenu"),
       crea: document.getElementById("viewCrea"),
@@ -594,6 +594,7 @@
     const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","operatore","dataNc","oraNc","riferimento"];
     const archivioFissoPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
+    const STORAGE_KEY = "qda_qsw_archivio_v1";
 
     let archivio = caricaArchivio();
     let bozza = null;
@@ -608,8 +609,11 @@
 
     function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
     function dataAttuale() { return new Date().toISOString().slice(0, 10); }
+    function listaArchivio() {
+      return Object.values(archivio || {});
+    }
     function prossimoId() {
-      return archivio.reduce((max, nc) => Math.max(max, nc.id || 0), 0) + 1;
+      return listaArchivio().reduce((max, nc) => Math.max(max, Number(nc.id) || 0), 0) + 1;
     }
 
     function modelloVuoto() {
@@ -634,8 +638,26 @@
     }
 
     function normalizzaNc(nc) {
-      const base = modelloVuoto();
+      const base = {
+        id: null,
+        titolo: "",
+        descrizione: "",
+        categoria: "",
+        gravita: "",
+        reparto: "",
+        luogo: "",
+        operatore: "",
+        stato: "Bozza",
+        dataNc: dataAttuale(),
+        oraNc: oraAttuale(),
+        riferimento: "",
+        note: "",
+        gpsCoord: "",
+        osservazioni: [],
+        immagini: []
+      };
       const out = Object.assign(base, nc || {});
+      out.id = Number(out.id) || null;
       if (!Array.isArray(out.osservazioni)) {
         out.osservazioni = Array.isArray(nc && nc.observations) ? nc.observations : [];
       }
@@ -646,8 +668,50 @@
       return out;
     }
 
+    function normalizzaArchivio(parsed) {
+      if (!parsed) return {};
+      const out = {};
+      const prossimoIdLocale = () => {
+        const keys = Object.keys(out).map(k => Number(k)).filter(n => Number.isFinite(n));
+        return (keys.length ? Math.max(...keys) : 0) + 1;
+      };
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          const nc = normalizzaNc(item);
+          let id = nc.id || prossimoIdLocale();
+          if (out[String(id)]) id = prossimoIdLocale();
+          nc.id = id;
+          out[String(id)] = nc;
+        });
+        return out;
+      }
+      if (typeof parsed === "object") {
+        Object.keys(parsed).forEach(key => {
+          const nc = normalizzaNc(parsed[key]);
+          let id = nc.id || Number(key) || prossimoIdLocale();
+          if (out[String(id)]) id = prossimoIdLocale();
+          nc.id = id;
+          out[String(id)] = nc;
+        });
+      }
+      return out;
+    }
+    function serializzaArchivio() {
+      const ordinato = {};
+      Object.keys(archivio || {})
+        .sort((a, b) => Number(a) - Number(b))
+        .forEach(k => { ordinato[k] = archivio[k]; });
+      return JSON.stringify(ordinato, null, 2);
+    }
     function caricaArchivio() {
-      return [];
+      try {
+        const testo = localStorage.getItem(STORAGE_KEY);
+        if (!testo) return {};
+        const parsed = JSON.parse(testo);
+        return normalizzaArchivio(parsed);
+      } catch {
+        return {};
+      }
     }
     function aggiornaStatoArchivio() {
       if (!statoArchivio) return;
@@ -662,19 +726,26 @@
       a.click();
       URL.revokeObjectURL(url);
     }
+    function salvaArchivioLocale(json) {
+      try {
+        localStorage.setItem(STORAGE_KEY, json);
+      } catch {
+        // Ignore quota/private-mode errors and keep app usable.
+      }
+    }
     async function salvaArchivio() {
-      const json = JSON.stringify(archivio, null, 2);
+      const json = serializzaArchivio();
+      salvaArchivioLocale(json);
       if (fileHandle && window.showSaveFilePicker) {
         const writable = await fileHandle.createWritable();
         await writable.write(json);
         await writable.close();
-        return;
       }
-      scaricaTesto(nomeArchivio || "nc-archivio.json", json);
     }
     function caricaArchivioDaTesto(testo) {
       const parsed = JSON.parse(testo);
-      archivio = Array.isArray(parsed) ? parsed.map(normalizzaNc) : [];
+      archivio = normalizzaArchivio(parsed);
+      salvaArchivioLocale(serializzaArchivio());
       renderListaNc();
     }
     async function caricaArchivioFisso() {
@@ -683,9 +754,9 @@
         const resp = await fetch(archivioFissoPath + "?t=" + Date.now(), { cache: "no-store" });
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const testo = await resp.text();
-        caricaArchivioDaTesto((testo || "").trim() ? testo : "[]");
+        caricaArchivioDaTesto((testo || "").trim() ? testo : "{}");
       } catch {
-        archivio = [];
+        // Keep the local cache loaded by caricaArchivio() when fixed file is not reachable.
         renderListaNc();
       }
       aggiornaStatoArchivio();
@@ -698,10 +769,14 @@
         });
         if (!handle) return;
         fileHandle = handle;
-        nomeArchivio = handle.name || "nc-archivio.json";
+        if ((handle.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) {
+          mostraAlert("error", "Seleziona il file " + archivioFissoNome + ".");
+          return;
+        }
+        nomeArchivio = archivioFissoNome;
         const file = await handle.getFile();
         const testo = await file.text();
-        caricaArchivioDaTesto(testo || "[]");
+        caricaArchivioDaTesto(testo || "{}");
         aggiornaStatoArchivio();
         mostraAlert("ok", "Archivio JSON caricato.");
         return;
@@ -716,7 +791,11 @@
         });
         if (!handle) return;
         fileHandle = handle;
-        nomeArchivio = handle.name || "nc-archivio.json";
+        if ((handle.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) {
+          mostraAlert("error", "Usa il nome file " + archivioFissoNome + ".");
+          return;
+        }
+        nomeArchivio = archivioFissoNome;
         await salvaArchivio();
         aggiornaStatoArchivio();
         mostraAlert("ok", "Archivio JSON collegato.");
@@ -725,7 +804,7 @@
       nomeArchivio = nomeArchivio || "nc-archivio.json";
       await salvaArchivio();
       aggiornaStatoArchivio();
-      mostraAlert("ok", "Archivio esportato in download JSON.");
+      mostraAlert("ok", "Archivio locale pronto. Usa 'Esporta JSON' se vuoi scaricare un file.");
     }
 
     function mostraVista(nome) {
@@ -782,17 +861,18 @@
     function renderListaNc() {
       const btnApriSel = document.getElementById("btnApriSelezionata");
       const aggiornaAzioniSelezione = () => {
-        const disabilita = ncSelezionataId == null || !archivio.some(x => x.id === ncSelezionataId);
+        const disabilita = ncSelezionataId == null || !archivio[String(ncSelezionataId)];
         btnApriSel.disabled = disabilita;
       };
-      if (!archivio.length) {
+      const elenco = listaArchivio();
+      if (!elenco.length) {
         ncSelezionataId = null;
         aggiornaAzioniSelezione();
         listaNc.innerHTML = `<div class="empty">Nessuna NC salvata.</div>`;
         return;
       }
-      if (!archivio.some(x => x.id === ncSelezionataId)) ncSelezionataId = null;
-      const ordinato = [...archivio].sort((a, b) => b.id - a.id);
+      if (!archivio[String(ncSelezionataId)]) ncSelezionataId = null;
+      const ordinato = [...elenco].sort((a, b) => b.id - a.id);
       listaNc.innerHTML = ordinato.map(nc => `
         <article class="card ${nc.id === ncSelezionataId ? "selected" : ""}" data-id="${nc.id}" data-sev="${escapeHtml(nc.gravita || "")}">
           <h3>#NC-${String(nc.id).padStart(4, "0")} - ${escapeHtml(nc.titolo || "Senza titolo")}</h3>
@@ -821,7 +901,7 @@
         mostraToast("error", "Seleziona una NC.");
         return;
       }
-      const trovato = archivio.find(x => x.id === ncSelezionataId);
+      const trovato = archivio[String(ncSelezionataId)];
       if (!trovato) {
         mostraToast("error", "NC selezionata non trovata.");
         return;
@@ -912,6 +992,7 @@
     }
 
     function aggiornaAnteprima() {
+      if (!anteprimaJson) return;
       anteprimaJson.textContent = JSON.stringify(bozza, null, 2);
     }
 
@@ -925,9 +1006,9 @@
     }
 
     async function upsertBozza() {
-      const i = archivio.findIndex(x => x.id === bozza.id);
-      if (i === -1) archivio.push(JSON.parse(JSON.stringify(bozza)));
-      else archivio[i] = JSON.parse(JSON.stringify(bozza));
+      const chiave = String(Number(bozza.id) || prossimoId());
+      bozza.id = Number(chiave);
+      archivio[chiave] = JSON.parse(JSON.stringify(bozza));
       await salvaArchivio();
     }
 
@@ -989,7 +1070,7 @@
     }
 
     function esportaJson() {
-      scaricaTesto(nomeArchivio || "nc-archivio.json", JSON.stringify(archivio, null, 2));
+      scaricaTesto(nomeArchivio || "nc-archivio.json", serializzaArchivio());
     }
     function acquisisciPosizione() {
       if (!("geolocation" in navigator)) {
@@ -1114,8 +1195,12 @@
       if (!file) return;
       try {
         const testo = await file.text();
-        nomeArchivio = file.name || "nc-archivio.json";
-        caricaArchivioDaTesto(testo || "[]");
+        if ((file.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) {
+          mostraAlert("error", "Importa il file " + archivioFissoNome + ".");
+          return;
+        }
+        nomeArchivio = archivioFissoNome;
+        caricaArchivioDaTesto(testo || "{}");
         aggiornaStatoArchivio();
         mostraAlert("ok", "Archivio JSON importato.");
       } catch {
