@@ -570,6 +570,7 @@
   </div>
 
   <script>
+    const APP_VERSION = "v2026.03.13.1";
     const viste = {
       menu: document.getElementById("viewMenu"),
       crea: document.getElementById("viewCrea"),
@@ -599,6 +600,10 @@
     let fileHandle = null;
     let nomeArchivio = archivioFissoNome;
     let ncSelezionataId = null;
+
+    function setSottoHeader(testo) {
+      sottoHeader.textContent = testo + " • " + APP_VERSION;
+    }
 
     function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
     function dataAttuale() { return new Date().toISOString().slice(0, 10); }
@@ -727,17 +732,17 @@
       viste[nome].classList.add("active");
       if (nome === "menu") {
         titoloHeader.textContent = "Menu";
-        sottoHeader.textContent = "Demo mobile non conformita installazioni foro finestra";
+        setSottoHeader("Demo mobile non conformita installazioni foro finestra");
         btnIndietro.style.display = "none";
       }
       if (nome === "crea") {
         titoloHeader.textContent = "Crea NC";
-        sottoHeader.textContent = "Raccogli problema, foto, operatore, ordini e posizione";
+        setSottoHeader("Raccogli problema, foto, operatore, ordini e posizione");
         btnIndietro.style.display = "inline-block";
       }
       if (nome === "visualizza") {
         titoloHeader.textContent = "Visualizza NC";
-        sottoHeader.textContent = "Elenco NC salvate";
+        setSottoHeader("Elenco NC salvate");
         btnIndietro.style.display = "inline-block";
         renderListaNc();
       }
