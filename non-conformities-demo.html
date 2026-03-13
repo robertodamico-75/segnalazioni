@@ -144,25 +144,59 @@
       text-align: center;
       padding: 18px 12px;
     }
-    .menu-brand img {
+    .menu-logo {
       width: min(220px, 86%);
-      height: auto;
-      object-fit: contain;
-      display: block;
       margin: 0 auto 10px;
+      border-radius: 18px;
+      padding: 16px 10px;
+      background: linear-gradient(135deg, #1fa85b, #157c43);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(13, 75, 40, 0.25);
     }
-    .menu-brand .fallback {
+    .menu-logo .main {
+      display: block;
+      font-size: 2rem;
+      line-height: 1;
+      letter-spacing: 0.1em;
       font-weight: 900;
-      color: #1f4f8b;
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
-      display: none;
+    }
+    .menu-logo .sub {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      font-weight: 800;
+      color: #e9fff2;
     }
     .menu-brand .asi {
-      font-size: 1rem;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #0f5b33;
+      letter-spacing: 0.04em;
+    }
+    .qsw-logo {
+      border-color: #bde5ce;
+      background: linear-gradient(135deg, #1fa85b, #157c43);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+    }
+    .qsw-logo .main {
+      font-size: 0.9rem;
+      line-height: 1;
+      letter-spacing: 0.08em;
       font-weight: 900;
-      color: #0f3f77;
-      letter-spacing: 0.05em;
+    }
+    .qsw-logo .sub {
+      font-size: 0.46rem;
+      line-height: 1;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      color: #e9fff2;
+      margin: 0;
     }
     .btn {
       border: 0;
@@ -171,6 +205,10 @@
       font-size: 0.92rem;
       font-weight: 700;
       cursor: pointer;
+    }
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
     .btn:active { transform: translateY(1px); }
     .btn.primary { color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
@@ -224,6 +262,10 @@
       cursor: pointer;
     }
     .card[data-sev="Critica"] { border-left-color: var(--danger); }
+    .card.selected {
+      border-color: #1a7f49;
+      box-shadow: 0 0 0 2px rgba(26, 127, 73, 0.2);
+    }
     .card h3 { margin: 0 0 7px; font-size: 0.94rem; }
     .meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
     .badge {
@@ -357,17 +399,19 @@
           <h1 class="title" id="titoloHeader">Menu</h1>
           <p class="sub" id="sottoHeader">Demo mobile non conformita installazioni foro finestra</p>
         </div>
-        <div class="logo-box">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/320px-ALPAC_logo.svg.png" alt="Logo ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-          <span class="logo-fallback" style="display:none;">ALPAC</span>
+        <div class="logo-box qsw-logo" aria-label="QSW Track">
+          <span class="main">QSW</span>
+          <span class="sub">TRACK</span>
         </div>
       </header>
 
       <main class="view active" id="viewMenu">
         <section class="panel menu-brand">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/640px-ALPAC_logo.svg.png" alt="ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-          <div class="fallback">ALPAC</div>
-          <div class="asi">ASIDATAMYTE.IT</div>
+          <div class="menu-logo" aria-label="QSW Track logo">
+            <span class="main">QSW</span>
+            <span class="sub">TRACK REFERENCE</span>
+          </div>
+          <div class="asi">Riferimento tracking non conformita</div>
         </section>
         <section class="panel">
           <h2>Seleziona azione</h2>
@@ -513,6 +557,10 @@
         <section class="panel">
           <h2>NC create e salvate</h2>
           <div id="listaNc" class="cards"></div>
+          <div class="inline" style="margin-top:10px;">
+            <button class="btn secondary" id="btnApriSelezionata" disabled>Apri selezionata</button>
+            <button class="btn danger" id="btnEliminaSelezionata" disabled>Elimina selezionata</button>
+          </div>
         </section>
         <section class="panel">
           <button class="btn secondary block" id="btnEsportaJson">Esporta JSON</button>
@@ -551,6 +599,7 @@
     let timerToast = null;
     let fileHandle = null;
     let nomeArchivio = archivioFissoNome;
+    let ncSelezionataId = null;
 
     function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
     function dataAttuale() { return new Date().toISOString().slice(0, 10); }
@@ -726,13 +775,23 @@
     }
 
     function renderListaNc() {
+      const btnApriSel = document.getElementById("btnApriSelezionata");
+      const btnEliminaSel = document.getElementById("btnEliminaSelezionata");
+      const aggiornaAzioniSelezione = () => {
+        const disabilita = ncSelezionataId == null || !archivio.some(x => x.id === ncSelezionataId);
+        btnApriSel.disabled = disabilita;
+        btnEliminaSel.disabled = disabilita;
+      };
       if (!archivio.length) {
+        ncSelezionataId = null;
+        aggiornaAzioniSelezione();
         listaNc.innerHTML = `<div class="empty">Nessuna NC salvata.</div>`;
         return;
       }
+      if (!archivio.some(x => x.id === ncSelezionataId)) ncSelezionataId = null;
       const ordinato = [...archivio].sort((a, b) => b.id - a.id);
       listaNc.innerHTML = ordinato.map(nc => `
-        <article class="card" data-id="${nc.id}" data-sev="${escapeHtml(nc.gravita || "")}">
+        <article class="card ${nc.id === ncSelezionataId ? "selected" : ""}" data-id="${nc.id}" data-sev="${escapeHtml(nc.gravita || "")}">
           <h3>#NC-${String(nc.id).padStart(4, "0")} - ${escapeHtml(nc.titolo || "Senza titolo")}</h3>
           <div class="meta">
             <span class="badge stato-${escapeHtml(nc.stato || "Bozza")}">${escapeHtml(nc.stato || "Bozza")}</span>
@@ -748,17 +807,45 @@
 
       listaNc.querySelectorAll(".card").forEach(card => {
         card.addEventListener("click", () => {
-          const id = Number(card.dataset.id);
-          const trovato = archivio.find(x => x.id === id);
-          if (!trovato) return;
-          bozza = normalizzaNc(JSON.parse(JSON.stringify(trovato)));
-          renderForm();
-          renderOsservazioni();
-          renderImmagini();
-          aggiornaAnteprima();
-          mostraVista("crea");
+          ncSelezionataId = Number(card.dataset.id);
+          renderListaNc();
         });
       });
+      aggiornaAzioniSelezione();
+    }
+    function apriNcSelezionata() {
+      if (ncSelezionataId == null) {
+        mostraToast("error", "Seleziona una NC.");
+        return;
+      }
+      const trovato = archivio.find(x => x.id === ncSelezionataId);
+      if (!trovato) {
+        mostraToast("error", "NC selezionata non trovata.");
+        return;
+      }
+      bozza = normalizzaNc(JSON.parse(JSON.stringify(trovato)));
+      renderForm();
+      renderOsservazioni();
+      renderImmagini();
+      aggiornaAnteprima();
+      mostraVista("crea");
+    }
+    async function eliminaNcSelezionata() {
+      if (ncSelezionataId == null) {
+        mostraToast("error", "Seleziona una NC.");
+        return;
+      }
+      const trovato = archivio.find(x => x.id === ncSelezionataId);
+      if (!trovato) {
+        mostraToast("error", "NC selezionata non trovata.");
+        return;
+      }
+      if (!confirm("Confermi l'eliminazione della NC selezionata?")) return;
+      archivio = archivio.filter(x => x.id !== ncSelezionataId);
+      ncSelezionataId = null;
+      await salvaArchivio();
+      renderListaNc();
+      mostraToast("ok", "NC eliminata.");
     }
 
     function renderOsservazioni() {
@@ -1018,6 +1105,8 @@
     document.getElementById("inputFoto").addEventListener("change", e => aggiungiFile(e.target.files));
     document.getElementById("inputUpload").addEventListener("change", e => aggiungiFile(e.target.files));
     document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
+    document.getElementById("btnApriSelezionata").addEventListener("click", apriNcSelezionata);
+    document.getElementById("btnEliminaSelezionata").addEventListener("click", eliminaNcSelezionata);
     document.getElementById("btnGps").addEventListener("click", acquisisciPosizione);
     document.getElementById("btnIndirizzo").addEventListener("click", acquisisciIndirizzo);
     document.getElementById("btnApriArchivio").addEventListener("click", async () => {
