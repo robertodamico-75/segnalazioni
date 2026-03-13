@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lettura NC - QDA QSW Track</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --panel: #ffffff;
+      --line: #d8e1ec;
+      --text: #14263a;
+      --muted: #607287;
+      --primary: #0a63d8;
+      --primary-dark: #084da6;
+      --ok-bg: #e6f7ed;
+      --ok-text: #187840;
+      --err-bg: #ffe9e9;
+      --err-text: #982525;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI Variable Display", "Aptos", "Helvetica Neue", sans-serif; }
+    #root { min-height: 100vh; }
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+      gap: 12px;
+      padding: 12px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .sidebar-head {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+    }
+    .title { margin: 0; font-size: 1.02rem; font-weight: 800; }
+    .sub { margin: 0; color: var(--muted); font-size: 0.8rem; }
+    .input, .select, .textarea {
+      width: 100%;
+      border: 1px solid #cdd8e5;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 9px 10px;
+      font: inherit;
+      min-width: 0;
+    }
+    .textarea { min-height: 80px; resize: vertical; }
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .btn.primary { color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+    .btn.secondary { color: #12324f; background: #e8eef7; }
+    .btn.danger { color: #862121; background: #ffe9e9; }
+    .btn.block { width: 100%; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .stack { display: grid; gap: 8px; }
+    .list {
+      overflow: auto;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .nc-card {
+      border: 1px solid var(--line);
+      border-left: 4px solid #b5c5d7;
+      border-radius: 11px;
+      background: #fff;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .nc-card.selected { border-color: #1c7d49; box-shadow: 0 0 0 2px rgba(28, 125, 73, 0.18); }
+    .nc-card h3 { margin: 0 0 6px; font-size: 0.9rem; }
+    .meta { color: var(--muted); font-size: 0.76rem; display: flex; flex-wrap: wrap; gap: 6px; }
+    .content {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+    }
+    .toolbar {
+      padding: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toolbar-left, .toolbar-right { display: flex; gap: 8px; align-items: center; }
+    .workspace {
+      min-height: 0;
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+    }
+    .section { padding: 12px; display: grid; gap: 10px; }
+    .section h2 { margin: 0; font-size: 0.95rem; }
+    .grid { display: grid; gap: 8px; }
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .label { font-size: 0.76rem; font-weight: 700; color: #3d556f; margin-bottom: 4px; display: block; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .stato-Nuovo { background: #f2f4f7; color: #465668; border-color: #d9e0e8; }
+    .stato-Avanzamento { background: #e8f0fe; color: #0c4ea6; border-color: #c9dcfb; }
+    .stato-Chiuso { background: #e7f8ee; color: #1a7d44; border-color: #c8edd8; }
+    .action {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fbfdff;
+      display: grid;
+      gap: 8px;
+    }
+    .action-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 40;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(15, 25, 36, 0.22);
+    }
+    .toast.ok { background: var(--ok-bg); color: var(--ok-text); border: 1px solid #c3ebd4; }
+    .toast.error { background: var(--err-bg); color: var(--err-text); border: 1px solid #f0c6c6; }
+    .empty {
+      border: 1px dashed #cad7e5;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { max-height: 42vh; }
+      .cols-2, .cols-3 { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-left, .toolbar-right { width: 100%; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+
+    const DB_PATH = "./nc-archivio.json";
+    const DB_NAME = "nc-archivio.json";
+    const POLL_MS = 10000;
+
+    const STATUS_OPTIONS = ["Nuovo", "Avanzamento", "Chiuso"];
+
+    function nowDate() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function defaultActionBase() {
+      return {
+        responsabile: "",
+        dataCreazione: nowDate(),
+        dataChiusura: "",
+        stato: "Nuovo",
+        note: ""
+      };
+    }
+
+    function sectionActionTemplate(sectionKey) {
+      const base = defaultActionBase();
+      if (sectionKey === "containment") {
+        return { ...base, areaInteressata: "", rischioImmediato: "", misuraContenimento: "" };
+      }
+      if (sectionKey === "rootCause") {
+        return { ...base, problema: "", causaPotenziale: "", evidenza: "" };
+      }
+      if (sectionKey === "corrective") {
+        return { ...base, azioneCorrettiva: "", tipoIntervento: "", prevenzioneRecidiva: "" };
+      }
+      return { ...base, metodoVerifica: "", esitoAtteso: "", esitoRilevato: "" };
+    }
+
+    function normalizeWorkflow(raw) {
+      const src = raw || {};
+      return {
+        containment: {
+          contesto: src.containment?.contesto || "",
+          priorita: src.containment?.priorita || "",
+          actions: Array.isArray(src.containment?.actions) ? src.containment.actions : []
+        },
+        rootCause: {
+          metodo: src.rootCause?.metodo || "5 Perche",
+          fiveWhy: Array.isArray(src.rootCause?.fiveWhy) ? src.rootCause.fiveWhy.slice(0, 5) : ["", "", "", "", ""],
+          actions: Array.isArray(src.rootCause?.actions) ? src.rootCause.actions : []
+        },
+        corrective: {
+          obiettivo: src.corrective?.obiettivo || "",
+          prevenzione: src.corrective?.prevenzione || "",
+          actions: Array.isArray(src.corrective?.actions) ? src.corrective.actions : []
+        },
+        effectiveness: {
+          criterio: src.effectiveness?.criterio || "",
+          risultatoFinale: src.effectiveness?.risultatoFinale || "",
+          actions: Array.isArray(src.effectiveness?.actions) ? src.effectiveness.actions : []
+        }
+      };
+    }
+
+    function normalizeNc(nc, idFromKey) {
+      const id = Number(nc?.id) || Number(idFromKey) || 0;
+      return {
+        id,
+        titolo: nc?.titolo || "Senza titolo",
+        descrizione: nc?.descrizione || "",
+        categoria: nc?.categoria || "",
+        gravita: nc?.gravita || "",
+        reparto: nc?.reparto || "",
+        luogo: nc?.luogo || "",
+        operatore: nc?.operatore || "",
+        stato: nc?.stato || "Bozza",
+        dataNc: nc?.dataNc || "",
+        oraNc: nc?.oraNc || "",
+        riferimento: nc?.riferimento || "",
+        note: nc?.note || "",
+        gpsCoord: nc?.gpsCoord || "",
+        osservazioni: Array.isArray(nc?.osservazioni) ? nc.osservazioni : [],
+        immagini: Array.isArray(nc?.immagini) ? nc.immagini : [],
+        workflow: normalizeWorkflow(nc?.workflow)
+      };
+    }
+
+    function normalizeDb(parsed) {
+      const out = {};
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item) => {
+          const nc = normalizeNc(item, item?.id);
+          if (!nc.id) return;
+          out[String(nc.id)] = nc;
+        });
+        return out;
+      }
+      if (parsed && typeof parsed === "object") {
+        Object.keys(parsed).forEach((k) => {
+          const nc = normalizeNc(parsed[k], k);
+          if (!nc.id) return;
+          out[String(nc.id)] = nc;
+        });
+      }
+      return out;
+    }
+
+    function serializeDb(db) {
+      const ordered = {};
+      Object.keys(db || {})
+        .sort((a, b) => Number(a) - Number(b))
+        .forEach((k) => { ordered[k] = db[k]; });
+      return JSON.stringify(ordered, null, 2);
+    }
+
+    function parseDbText(text) {
+      const raw = (text || "").trim();
+      if (!raw) return {};
+      return normalizeDb(JSON.parse(raw));
+    }
+
+    function App() {
+      const [db, setDb] = useState({});
+      const [selectedId, setSelectedId] = useState(null);
+      const [filter, setFilter] = useState("");
+      const [toast, setToast] = useState({ type: "", msg: "" });
+      const [loading, setLoading] = useState(true);
+      const [saving, setSaving] = useState(false);
+      const [fileHandle, setFileHandle] = useState(null);
+      const signatureRef = useRef("");
+
+      useEffect(() => {
+        if (!toast.msg) return;
+        const t = setTimeout(() => setToast({ type: "", msg: "" }), 3200);
+        return () => clearTimeout(t);
+      }, [toast.msg]);
+
+      const loadFromFixedDb = async (notifyOnChange) => {
+        try {
+          const resp = await fetch(DB_PATH + "?t=" + Date.now(), { cache: "no-store" });
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
+          const text = await resp.text();
+          const normalized = parseDbText(text);
+          const signature = JSON.stringify(normalized);
+          if (!signatureRef.current) {
+            signatureRef.current = signature;
+            setDb(normalized);
+            const ids = Object.keys(normalized);
+            if (ids.length && (selectedId == null || !normalized[String(selectedId)])) {
+              setSelectedId(Number(ids.sort((a, b) => Number(b) - Number(a))[0]));
+            }
+            return;
+          }
+          if (signature !== signatureRef.current) {
+            signatureRef.current = signature;
+            setDb(normalized);
+            const ids = Object.keys(normalized);
+            if (ids.length && (selectedId == null || !normalized[String(selectedId)])) {
+              setSelectedId(Number(ids.sort((a, b) => Number(b) - Number(a))[0]));
+            }
+            if (notifyOnChange) setToast({ type: "ok", msg: "Database aggiornato da file." });
+          }
+        } catch {
+          if (!notifyOnChange) setToast({ type: "error", msg: "Impossibile leggere nc-archivio.json." });
+        } finally {
+          if (!notifyOnChange) setLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        loadFromFixedDb(false);
+        const timer = setInterval(() => loadFromFixedDb(true), POLL_MS);
+        return () => clearInterval(timer);
+      }, []);
+
+      const ncList = useMemo(() => {
+        const all = Object.values(db).sort((a, b) => b.id - a.id);
+        const q = filter.trim().toLowerCase();
+        if (!q) return all;
+        return all.filter((nc) => {
+          const hay = [
+            nc.id,
+            nc.titolo,
+            nc.categoria,
+            nc.gravita,
+            nc.reparto,
+            nc.riferimento,
+            nc.operatore
+          ].join(" ").toLowerCase();
+          return hay.includes(q);
+        });
+      }, [db, filter]);
+
+      const selectedNc = selectedId == null ? null : db[String(selectedId)] || null;
+
+      const patchSelectedNc = (mutator) => {
+        if (!selectedNc) return;
+        const clone = JSON.parse(JSON.stringify(selectedNc));
+        mutator(clone);
+        const nextDb = { ...db, [String(clone.id)]: clone };
+        setDb(nextDb);
+      };
+
+      const addAction = (sectionKey) => {
+        patchSelectedNc((nc) => {
+          const wf = nc.workflow;
+          wf[sectionKey].actions.push(sectionActionTemplate(sectionKey));
+        });
+      };
+
+      const updateActionField = (sectionKey, index, field, value) => {
+        patchSelectedNc((nc) => {
+          const action = nc.workflow[sectionKey].actions[index];
+          if (!action) return;
+          action[field] = value;
+        });
+      };
+
+      const removeAction = (sectionKey, index) => {
+        patchSelectedNc((nc) => {
+          nc.workflow[sectionKey].actions.splice(index, 1);
+        });
+      };
+
+      const saveDb = async () => {
+        try {
+          setSaving(true);
+          const json = serializeDb(db);
+          if (fileHandle && window.showSaveFilePicker) {
+            const writable = await fileHandle.createWritable();
+            await writable.write(json);
+            await writable.close();
+            setToast({ type: "ok", msg: "Database salvato su file collegato." });
+            signatureRef.current = JSON.stringify(db);
+            return;
+          }
+          if (window.showSaveFilePicker) {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: DB_NAME,
+              types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
+            });
+            if (!handle) return;
+            if ((handle.name || "").toLowerCase() !== DB_NAME.toLowerCase()) {
+              setToast({ type: "error", msg: "Usa il nome file " + DB_NAME + "." });
+              return;
+            }
+            setFileHandle(handle);
+            const writable = await handle.createWritable();
+            await writable.write(json);
+            await writable.close();
+            setToast({ type: "ok", msg: "Database collegato e salvato." });
+            signatureRef.current = JSON.stringify(db);
+            return;
+          }
+          const blob = new Blob([json], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = DB_NAME;
+          a.click();
+          URL.revokeObjectURL(url);
+          setToast({ type: "ok", msg: "Esportato download JSON." });
+        } catch {
+          setToast({ type: "error", msg: "Salvataggio database non riuscito." });
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      const connectExistingFile = async () => {
+        try {
+          if (!window.showOpenFilePicker) {
+            setToast({ type: "error", msg: "Open File Picker non supportato dal browser." });
+            return;
+          }
+          const [handle] = await window.showOpenFilePicker({
+            multiple: false,
+            types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
+          });
+          if (!handle) return;
+          if ((handle.name || "").toLowerCase() !== DB_NAME.toLowerCase()) {
+            setToast({ type: "error", msg: "Seleziona " + DB_NAME + "." });
+            return;
+          }
+          setFileHandle(handle);
+          const file = await handle.getFile();
+          const text = await file.text();
+          const normalized = parseDbText(text);
+          setDb(normalized);
+          signatureRef.current = JSON.stringify(normalized);
+          const ids = Object.keys(normalized);
+          if (ids.length) setSelectedId(Number(ids.sort((a, b) => Number(b) - Number(a))[0]));
+          setToast({ type: "ok", msg: "File database collegato." });
+        } catch {
+          setToast({ type: "error", msg: "Impossibile collegare file database." });
+        }
+      };
+
+      return (
+        <div className="layout">
+          <aside className="panel sidebar">
+            <div className="sidebar-head">
+              <h1 className="title">Flusso da campo</h1>
+              <p className="sub">Lettura NC da nc-archivio.json con aggiornamento automatico.</p>
+              <input className="input" placeholder="Cerca NC..." value={filter} onChange={(e) => setFilter(e.target.value)} />
+              <button className="btn secondary block" onClick={() => loadFromFixedDb(true)}>Aggiorna elenco</button>
+            </div>
+            <div className="list">
+              {!ncList.length && <div className="empty">Nessuna NC disponibile.</div>}
+              {ncList.map((nc) => (
+                <article
+                  key={nc.id}
+                  className={"nc-card " + (selectedId === nc.id ? "selected" : "")}
+                  onClick={() => setSelectedId(nc.id)}
+                >
+                  <h3>#NC-{String(nc.id).padStart(4, "0")} - {nc.titolo}</h3>
+                  <div className="meta">
+                    <span>{nc.categoria || "-"}</span>
+                    <span>{nc.gravita || "-"}</span>
+                    <span>{nc.stato || "Bozza"}</span>
+                  </div>
+                  <div className="meta">
+                    <span>{(nc.dataNc || "-") + " " + (nc.oraNc || "")}</span>
+                    <span>{nc.reparto || "-"}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </aside>
+
+          <section className="content">
+            <header className="panel toolbar">
+              <div className="toolbar-left">
+                <strong>Lettura NC e gestione workflow</strong>
+                <span className="sub">Database: {DB_PATH}</span>
+              </div>
+              <div className="toolbar-right">
+                <button className="btn secondary" onClick={connectExistingFile}>Collega file</button>
+                <button className="btn primary" onClick={saveDb} disabled={saving || !selectedNc}>{saving ? "Salvataggio..." : "Salva Database"}</button>
+              </div>
+            </header>
+
+            <main className="panel workspace">
+              {loading && <div className="empty">Caricamento database...</div>}
+              {!loading && !selectedNc && <div className="empty">Seleziona una NC dal flusso per vedere i dettagli.</div>}
+              {!loading && selectedNc && (
+                <>
+                  <section className="section panel">
+                    <h2>Dettaglio NC selezionata</h2>
+                    <div className="grid cols-3">
+                      <div><span className="label">ID</span><input className="input" value={"NC-" + String(selectedNc.id).padStart(4, "0")} readOnly /></div>
+                      <div><span className="label">Titolo</span><input className="input" value={selectedNc.titolo} readOnly /></div>
+                      <div><span className="label">Stato NC</span><input className="input" value={selectedNc.stato} readOnly /></div>
+                    </div>
+                    <div className="grid cols-2">
+                      <div><span className="label">Descrizione</span><textarea className="textarea" value={selectedNc.descrizione} readOnly /></div>
+                      <div><span className="label">Riferimento ordine/commessa</span><input className="input" value={selectedNc.riferimento} readOnly /></div>
+                    </div>
+                  </section>
+
+                  <WorkflowSection
+                    title="Gestione Containment"
+                    sectionKey="containment"
+                    sectionData={selectedNc.workflow.containment}
+                    addAction={addAction}
+                    removeAction={removeAction}
+                    updateActionField={updateActionField}
+                    patchSelectedNc={patchSelectedNc}
+                  />
+
+                  <RootCauseSection
+                    sectionData={selectedNc.workflow.rootCause}
+                    addAction={addAction}
+                    removeAction={removeAction}
+                    updateActionField={updateActionField}
+                    patchSelectedNc={patchSelectedNc}
+                  />
+
+                  <WorkflowSection
+                    title="Azione Correttiva"
+                    sectionKey="corrective"
+                    sectionData={selectedNc.workflow.corrective}
+                    addAction={addAction}
+                    removeAction={removeAction}
+                    updateActionField={updateActionField}
+                    patchSelectedNc={patchSelectedNc}
+                  />
+
+                  <WorkflowSection
+                    title="Verifica Efficacia"
+                    sectionKey="effectiveness"
+                    sectionData={selectedNc.workflow.effectiveness}
+                    addAction={addAction}
+                    removeAction={removeAction}
+                    updateActionField={updateActionField}
+                    patchSelectedNc={patchSelectedNc}
+                  />
+                </>
+              )}
+            </main>
+          </section>
+          {toast.msg && <div className={"toast " + (toast.type === "ok" ? "ok" : "error")}>{toast.msg}</div>}
+        </div>
+      );
+    }
+
+    function BaseActionFields({ action, onChange }) {
+      return (
+        <div className="grid cols-3">
+          <div>
+            <span className="label">Responsabile</span>
+            <input className="input" value={action.responsabile || ""} onChange={(e) => onChange("responsabile", e.target.value)} />
+          </div>
+          <div>
+            <span className="label">Data creazione</span>
+            <input className="input" type="date" value={action.dataCreazione || ""} readOnly />
+          </div>
+          <div>
+            <span className="label">Data chiusura</span>
+            <input className="input" type="date" value={action.dataChiusura || ""} onChange={(e) => onChange("dataChiusura", e.target.value)} />
+          </div>
+          <div>
+            <span className="label">Stato</span>
+            <select className="select" value={action.stato || "Nuovo"} onChange={(e) => onChange("stato", e.target.value)}>
+              {STATUS_OPTIONS.map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="cols-2" style={{ gridColumn: "span 2" }}>
+            <span className="label">Note</span>
+            <input className="input" value={action.note || ""} onChange={(e) => onChange("note", e.target.value)} />
+          </div>
+        </div>
+      );
+    }
+
+    function WorkflowSection({ title, sectionKey, sectionData, addAction, removeAction, updateActionField, patchSelectedNc }) {
+      const sectionSpecificHeader = () => {
+        if (sectionKey === "containment") {
+          return (
+            <div className="grid cols-2">
+              <div>
+                <span className="label">Contesto containment</span>
+                <input className="input" value={sectionData.contesto || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.containment.contesto = e.target.value; })} />
+              </div>
+              <div>
+                <span className="label">Priorita</span>
+                <input className="input" value={sectionData.priorita || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.containment.priorita = e.target.value; })} />
+              </div>
+            </div>
+          );
+        }
+        if (sectionKey === "corrective") {
+          return (
+            <div className="grid cols-2">
+              <div>
+                <span className="label">Obiettivo correttivo</span>
+                <input className="input" value={sectionData.obiettivo || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.corrective.obiettivo = e.target.value; })} />
+              </div>
+              <div>
+                <span className="label">Prevenzione recidiva</span>
+                <input className="input" value={sectionData.prevenzione || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.corrective.prevenzione = e.target.value; })} />
+              </div>
+            </div>
+          );
+        }
+        if (sectionKey === "effectiveness") {
+          return (
+            <div className="grid cols-2">
+              <div>
+                <span className="label">Criterio di verifica</span>
+                <input className="input" value={sectionData.criterio || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.effectiveness.criterio = e.target.value; })} />
+              </div>
+              <div>
+                <span className="label">Risultato finale</span>
+                <input className="input" value={sectionData.risultatoFinale || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.effectiveness.risultatoFinale = e.target.value; })} />
+              </div>
+            </div>
+          );
+        }
+        return null;
+      };
+
+      const sectionSpecificFields = (action, onChange) => {
+        if (sectionKey === "containment") {
+          return (
+            <div className="grid cols-3">
+              <div><span className="label">Area interessata</span><input className="input" value={action.areaInteressata || ""} onChange={(e) => onChange("areaInteressata", e.target.value)} /></div>
+              <div><span className="label">Rischio immediato</span><input className="input" value={action.rischioImmediato || ""} onChange={(e) => onChange("rischioImmediato", e.target.value)} /></div>
+              <div><span className="label">Misura contenimento</span><input className="input" value={action.misuraContenimento || ""} onChange={(e) => onChange("misuraContenimento", e.target.value)} /></div>
+            </div>
+          );
+        }
+        if (sectionKey === "corrective") {
+          return (
+            <div className="grid cols-3">
+              <div><span className="label">Azione correttiva</span><input className="input" value={action.azioneCorrettiva || ""} onChange={(e) => onChange("azioneCorrettiva", e.target.value)} /></div>
+              <div><span className="label">Tipo intervento</span><input className="input" value={action.tipoIntervento || ""} onChange={(e) => onChange("tipoIntervento", e.target.value)} /></div>
+              <div><span className="label">Prevenzione recidiva</span><input className="input" value={action.prevenzioneRecidiva || ""} onChange={(e) => onChange("prevenzioneRecidiva", e.target.value)} /></div>
+            </div>
+          );
+        }
+        if (sectionKey === "effectiveness") {
+          return (
+            <div className="grid cols-3">
+              <div><span className="label">Metodo verifica</span><input className="input" value={action.metodoVerifica || ""} onChange={(e) => onChange("metodoVerifica", e.target.value)} /></div>
+              <div><span className="label">Esito atteso</span><input className="input" value={action.esitoAtteso || ""} onChange={(e) => onChange("esitoAtteso", e.target.value)} /></div>
+              <div><span className="label">Esito rilevato</span><input className="input" value={action.esitoRilevato || ""} onChange={(e) => onChange("esitoRilevato", e.target.value)} /></div>
+            </div>
+          );
+        }
+        return null;
+      };
+
+      return (
+        <section className="section panel">
+          <div className="action-head">
+            <h2>{title}</h2>
+            <button className="btn secondary" onClick={() => addAction(sectionKey)}>Nuova azione</button>
+          </div>
+          {sectionSpecificHeader()}
+          {!sectionData.actions.length && <div className="empty">Nessuna azione creata.</div>}
+          {sectionData.actions.map((action, idx) => {
+            const onChange = (field, value) => updateActionField(sectionKey, idx, field, value);
+            return (
+              <article key={idx} className="action">
+                <div className="action-head">
+                  <strong>Azione {idx + 1}</strong>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span className={"chip stato-" + (action.stato || "Nuovo")}>{action.stato || "Nuovo"}</span>
+                    <button className="btn danger" onClick={() => removeAction(sectionKey, idx)}>Elimina</button>
+                  </div>
+                </div>
+                <BaseActionFields action={action} onChange={onChange} />
+                {sectionSpecificFields(action, onChange)}
+              </article>
+            );
+          })}
+        </section>
+      );
+    }
+
+    function RootCauseSection({ sectionData, addAction, removeAction, updateActionField, patchSelectedNc }) {
+      return (
+        <section className="section panel">
+          <div className="action-head">
+            <h2>Identificazione Causa Radice (5 Perche)</h2>
+            <button className="btn secondary" onClick={() => addAction("rootCause")}>Nuova azione</button>
+          </div>
+          <div className="grid cols-2">
+            <div>
+              <span className="label">Metodo analisi</span>
+              <input className="input" value={sectionData.metodo || ""} onChange={(e) => patchSelectedNc((nc) => { nc.workflow.rootCause.metodo = e.target.value; })} />
+            </div>
+          </div>
+          <div className="grid">
+            {sectionData.fiveWhy.map((v, i) => (
+              <div key={i}>
+                <span className="label">Perche {i + 1}</span>
+                <input
+                  className="input"
+                  value={v || ""}
+                  onChange={(e) => patchSelectedNc((nc) => { nc.workflow.rootCause.fiveWhy[i] = e.target.value; })}
+                />
+              </div>
+            ))}
+          </div>
+          {!sectionData.actions.length && <div className="empty">Nessuna azione creata.</div>}
+          {sectionData.actions.map((action, idx) => {
+            const onChange = (field, value) => updateActionField("rootCause", idx, field, value);
+            return (
+              <article key={idx} className="action">
+                <div className="action-head">
+                  <strong>Azione {idx + 1}</strong>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span className={"chip stato-" + (action.stato || "Nuovo")}>{action.stato || "Nuovo"}</span>
+                    <button className="btn danger" onClick={() => removeAction("rootCause", idx)}>Elimina</button>
+                  </div>
+                </div>
+                <BaseActionFields action={action} onChange={onChange} />
+                <div className="grid cols-3">
+                  <div><span className="label">Problema</span><input className="input" value={action.problema || ""} onChange={(e) => onChange("problema", e.target.value)} /></div>
+                  <div><span className="label">Causa potenziale</span><input className="input" value={action.causaPotenziale || ""} onChange={(e) => onChange("causaPotenziale", e.target.value)} /></div>
+                  <div><span className="label">Evidenza</span><input className="input" value={action.evidenza || ""} onChange={(e) => onChange("evidenza", e.target.value)} /></div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
