@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
@@ -71,6 +71,36 @@
       gap: 8px;
       align-items: center;
       justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .logo-box {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      border: 1px solid #d8e1ec;
+      background: #ffffff;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+    .logo-box img {
+      max-width: 84%;
+      max-height: 84%;
+      object-fit: contain;
+      display: block;
+    }
+    .logo-fallback {
+      font-size: 0.64rem;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      color: #1f4f8b;
+      text-transform: uppercase;
     }
     .title { margin: 0; font-size: 1.02rem; font-weight: 750; }
     .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.76rem; }
@@ -242,9 +272,15 @@
     <div class="notch"></div>
     <div class="app">
       <header class="header">
-        <div>
-          <h1 class="title" id="titoloHeader">Menu</h1>
-          <p class="sub" id="sottoHeader">Demo mobile gestione non conformità</p>
+        <div class="brand">
+          <div class="logo-box">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/320px-ALPAC_logo.svg.png" alt="Logo ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+            <span class="logo-fallback" style="display:none;">ALPAC</span>
+          </div>
+          <div>
+            <h1 class="title" id="titoloHeader">Menu</h1>
+            <p class="sub" id="sottoHeader">Demo mobile non conformita installazioni foro finestra</p>
+          </div>
         </div>
         <button class="btn secondary" id="btnIndietro" style="display:none;">Indietro</button>
       </header>
@@ -260,7 +296,7 @@
         <section class="panel">
           <h2>Note demo</h2>
           <div style="font-size:0.84rem;color:#5d6f85;line-height:1.4;">
-            I dati vengono salvati localmente nel browser (localStorage), quindi restano disponibili per la schermata "Visualizza" e per la pagina separata di lettura dati.
+            Flusso dedicato alla raccolta problematiche su installazioni di prodotti ALPAC per la gestione del foro finestra. I dati vengono salvati localmente nel browser (localStorage).
           </div>
         </section>
       </main>
@@ -269,31 +305,31 @@
         <div class="alert" id="alertForm"></div>
 
         <section class="panel">
-          <h2>Dati non conformità</h2>
+          <h2>Dati non conformita installazione</h2>
           <div class="grid">
             <div>
-              <label for="titolo">Titolo segnalazione *</label>
-              <input id="titolo" placeholder="Titolo breve">
+              <label for="titolo">Problema riscontrato *</label>
+              <input id="titolo" placeholder="Es. Infiltrazione sul nodo inferiore">
             </div>
             <div>
-              <label for="descrizione">Descrizione *</label>
-              <textarea id="descrizione" placeholder="Descrivi la NC"></textarea>
+              <label for="descrizione">Descrizione tecnica problema *</label>
+              <textarea id="descrizione" placeholder="Descrivi sintomi, condizioni e difetto rilevato"></textarea>
             </div>
           </div>
           <div class="grid cols-2" style="margin-top:8px;">
             <div>
-              <label for="categoria">Categoria *</label>
+              <label for="categoria">Famiglia prodotto ALPAC *</label>
               <select id="categoria">
                 <option value="">Seleziona</option>
-                <option>Processo</option>
-                <option>Prodotto</option>
-                <option>Sicurezza</option>
-                <option>Documentazione</option>
-                <option>Audit</option>
+                <option>Sistemi posa</option>
+                <option>Monoblocco</option>
+                <option>Controtelaio</option>
+                <option>Cassonetto</option>
+                <option>Altro</option>
               </select>
             </div>
             <div>
-              <label for="gravita">Severità *</label>
+              <label for="gravita">Severita *</label>
               <select id="gravita">
                 <option value="">Seleziona</option>
                 <option>Bassa</option>
@@ -303,19 +339,19 @@
               </select>
             </div>
             <div>
-              <label for="reparto">Reparto / Area *</label>
-              <input id="reparto" placeholder="Es. Assemblaggio">
+              <label for="reparto">Cantiere / Cliente *</label>
+              <input id="reparto" placeholder="Es. Cantiere Milano Nord">
             </div>
             <div>
-              <label for="luogo">Luogo *</label>
-              <input id="luogo" placeholder="Linea 1 - Postazione B2">
+              <label for="luogo">Posizione geografica (indirizzo) *</label>
+              <input id="luogo" placeholder="Via, citta, provincia">
             </div>
             <div>
               <label for="operatore">Operatore / Segnalatore *</label>
               <input id="operatore" placeholder="Nome e cognome">
             </div>
             <div>
-              <label for="stato">Stato</label>
+              <label for="stato">Stato pratica</label>
               <select id="stato">
                 <option>Bozza</option>
                 <option>Aperta</option>
@@ -332,8 +368,15 @@
             </div>
           </div>
           <div style="margin-top:8px;">
-            <label for="riferimento">Lotto / Ordine / Riferimento</label>
-            <input id="riferimento" placeholder="LOT-2026-0001">
+            <label for="riferimento">Numero ordine / commessa *</label>
+            <input id="riferimento" placeholder="Es. ORD-2026-0458">
+          </div>
+          <div style="margin-top:8px;">
+            <label for="gpsCoord">Coordinate GPS</label>
+            <div class="inline">
+              <input id="gpsCoord" placeholder="Latitudine, Longitudine" readonly>
+              <button class="btn secondary" id="btnGps" type="button">Usa posizione attuale</button>
+            </div>
           </div>
           <div style="margin-top:8px;">
             <label for="note">Note aggiuntive</label>
@@ -342,7 +385,7 @@
         </section>
 
         <section class="panel">
-          <h2>Immagini</h2>
+          <h2>Foto del problema</h2>
           <div class="inline">
             <button class="btn secondary" id="btnFoto" type="button">Scatta foto</button>
             <button class="btn secondary" id="btnUpload" type="button">Carica immagine</button>
@@ -396,9 +439,10 @@
     const listaNc = document.getElementById("listaNc");
     const listaObs = document.getElementById("listaObs");
     const grigliaImg = document.getElementById("grigliaImg");
+    const gpsCoord = document.getElementById("gpsCoord");
 
     const campi = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","stato","dataNc","oraNc","riferimento","note"];
-    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","dataNc","oraNc"];
+    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","dataNc","oraNc","riferimento"];
 
     let archivio = caricaArchivio();
     let bozza = null;
@@ -424,6 +468,7 @@
         oraNc: oraAttuale(),
         riferimento: "",
         note: "",
+        gpsCoord: "",
         osservazioni: [],
         immagini: []
       };
@@ -438,6 +483,7 @@
       if (!Array.isArray(out.immagini)) {
         out.immagini = Array.isArray(nc && nc.images) ? nc.images : [];
       }
+      if (typeof out.gpsCoord !== "string") out.gpsCoord = "";
       return out;
     }
 
@@ -460,12 +506,12 @@
       viste[nome].classList.add("active");
       if (nome === "menu") {
         titoloHeader.textContent = "Menu";
-        sottoHeader.textContent = "Demo mobile gestione non conformità";
+        sottoHeader.textContent = "Demo mobile non conformita installazioni foro finestra";
         btnIndietro.style.display = "none";
       }
       if (nome === "crea") {
         titoloHeader.textContent = "Crea NC";
-        sottoHeader.textContent = "Compila e salva la segnalazione";
+        sottoHeader.textContent = "Raccogli problema, foto, operatore, ordini e posizione";
         btnIndietro.style.display = "inline-block";
       }
       if (nome === "visualizza") {
@@ -496,6 +542,7 @@
           aggiornaAnteprima();
         };
       });
+      gpsCoord.value = bozza.gpsCoord || "";
       nascondiAlert();
     }
 
@@ -507,7 +554,7 @@
       const ordinato = [...archivio].sort((a, b) => b.id - a.id);
       listaNc.innerHTML = ordinato.map(nc => `
         <article class="card" data-id="${nc.id}" data-sev="${escapeHtml(nc.gravita || "")}">
-          <h3>#NC-${String(nc.id).padStart(4, "0")} · ${escapeHtml(nc.titolo || "Senza titolo")}</h3>
+          <h3>#NC-${String(nc.id).padStart(4, "0")} Â· ${escapeHtml(nc.titolo || "Senza titolo")}</h3>
           <div class="meta">
             <span class="badge stato-${escapeHtml(nc.stato || "Bozza")}">${escapeHtml(nc.stato || "Bozza")}</span>
             <span>${escapeHtml(nc.categoria || "-")}</span>
@@ -599,7 +646,7 @@
       grigliaImg.innerHTML = immagini.map((img, i) => `
         <div class="img-item">
           <img src="${img.src}" alt="img-${i}">
-          <button type="button" data-del-img="${i}">×</button>
+          <button type="button" data-del-img="${i}">Ã—</button>
         </div>
       `).join("");
 
@@ -619,6 +666,9 @@
 
     function validaBozza() {
       const mancanti = obbligatori.filter(c => !String(bozza[c] || "").trim());
+      if (!String(bozza.gpsCoord || "").trim() && !String(bozza.luogo || "").trim()) {
+        mancanti.push("luogo o gpsCoord");
+      }
       if (mancanti.length) {
         mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
         return false;
@@ -687,6 +737,24 @@
       a.click();
       URL.revokeObjectURL(url);
     }
+    function acquisisciPosizione() {
+      if (!("geolocation" in navigator)) {
+        mostraAlert("error", "Geolocalizzazione non supportata su questo dispositivo.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lon = pos.coords.longitude.toFixed(6);
+          bozza.gpsCoord = lat + ", " + lon;
+          gpsCoord.value = bozza.gpsCoord;
+          aggiornaAnteprima();
+          mostraAlert("ok", "Posizione GPS acquisita.");
+        },
+        () => mostraAlert("error", "Impossibile acquisire la posizione GPS."),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, function(ch) {
@@ -718,8 +786,10 @@
     document.getElementById("inputFoto").addEventListener("change", e => aggiungiFile(e.target.files));
     document.getElementById("inputUpload").addEventListener("change", e => aggiungiFile(e.target.files));
     document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
+    document.getElementById("btnGps").addEventListener("click", acquisisciPosizione);
 
     mostraVista("menu");
   </script>
 </body>
 </html>
+
