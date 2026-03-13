@@ -72,11 +72,12 @@
       align-items: center;
       justify-content: space-between;
     }
-    .brand {
+    .header-center {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
       min-width: 0;
+      flex: 1;
+      padding: 0 6px;
     }
     .logo-box {
       width: 46px;
@@ -101,6 +102,17 @@
       font-weight: 800;
       color: #1f4f8b;
       text-transform: uppercase;
+    }
+    .btn.back {
+      min-width: 42px;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1;
+      border-radius: 10px;
+      flex: 0 0 auto;
     }
     .title { margin: 0; font-size: 1.02rem; font-weight: 750; }
     .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.76rem; }
@@ -138,6 +150,7 @@
     .btn.block { width: 100%; }
     .grid { display: grid; gap: 9px; }
     .cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .date-time-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     label {
       display: block;
       margin-bottom: 4px;
@@ -147,6 +160,7 @@
     }
     input, select, textarea {
       width: 100%;
+      min-width: 0;
       border: 1px solid #cdd8e5;
       border-radius: 10px;
       padding: 9px 10px;
@@ -154,6 +168,12 @@
       color: #122235;
       background: #fff;
       font-size: 0.9rem;
+    }
+    input[type="date"], input[type="time"] {
+      appearance: none;
+      -webkit-appearance: none;
+      max-width: 100%;
+      overflow: hidden;
     }
     textarea { min-height: 80px; resize: vertical; }
     .menu-buttons { display: grid; gap: 10px; margin-top: 8px; }
@@ -265,6 +285,10 @@
       .notch { display: none; }
       .header { padding-top: 16px; }
       .cols-2 { grid-template-columns: 1fr; }
+      .date-time-row { grid-template-columns: 1fr; }
+    }
+    @supports (-webkit-touch-callout: none) {
+      .date-time-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -273,17 +297,15 @@
     <div class="notch"></div>
     <div class="app">
       <header class="header">
-        <div class="brand">
-          <div class="logo-box">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/320px-ALPAC_logo.svg.png" alt="Logo ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-            <span class="logo-fallback" style="display:none;">ALPAC</span>
-          </div>
-          <div>
-            <h1 class="title" id="titoloHeader">Menu</h1>
-            <p class="sub" id="sottoHeader">Demo mobile non conformita installazioni foro finestra</p>
-          </div>
+        <button class="btn secondary back" id="btnIndietro" style="display:none;" aria-label="Indietro" title="Indietro">‹</button>
+        <div class="header-center">
+          <h1 class="title" id="titoloHeader">Menu</h1>
+          <p class="sub" id="sottoHeader">Demo mobile non conformita installazioni foro finestra</p>
         </div>
-        <button class="btn secondary" id="btnIndietro" style="display:none;">Indietro</button>
+        <div class="logo-box">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/320px-ALPAC_logo.svg.png" alt="Logo ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <span class="logo-fallback" style="display:none;">ALPAC</span>
+        </div>
       </header>
 
       <main class="view active" id="viewMenu">
@@ -359,6 +381,8 @@
                 <option>Inviata</option>
               </select>
             </div>
+          </div>
+          <div class="grid date-time-row" style="margin-top:8px;">
             <div>
               <label for="dataNc">Data *</label>
               <input id="dataNc" type="date">
