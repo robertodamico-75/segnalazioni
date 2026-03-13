@@ -399,9 +399,9 @@
           <h1 class="title" id="titoloHeader">Menu</h1>
           <p class="sub" id="sottoHeader">Demo mobile non conformita installazioni foro finestra</p>
         </div>
-        <div class="logo-box qsw-logo" aria-label="QSW Track">
-          <span class="main">QSW</span>
-          <span class="sub">TRACK</span>
+        <div class="logo-box">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/320px-ALPAC_logo.svg.png" alt="Logo ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <span class="logo-fallback" style="display:none;">ALPAC</span>
         </div>
       </header>
 
@@ -590,7 +590,7 @@
     const inputArchivio = document.getElementById("inputArchivio");
 
     const campi = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","stato","dataNc","oraNc","riferimento","note"];
-    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","dataNc","oraNc","riferimento"];
+    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","operatore","dataNc","oraNc","riferimento"];
     const archivioFissoPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
 
@@ -843,9 +843,8 @@
       if (!confirm("Confermi l'eliminazione della NC selezionata?")) return;
       archivio = archivio.filter(x => x.id !== ncSelezionataId);
       ncSelezionataId = null;
-      await salvaArchivio();
       renderListaNc();
-      mostraToast("ok", "NC eliminata.");
+      mostraToast("ok", "NC eliminata (solo elenco corrente).");
     }
 
     function renderOsservazioni() {
@@ -932,9 +931,6 @@
 
     function validaBozza() {
       const mancanti = obbligatori.filter(c => !String(bozza[c] || "").trim());
-      if (!String(bozza.gpsCoord || "").trim() && !String(bozza.luogo || "").trim()) {
-        mancanti.push("luogo o gpsCoord");
-      }
       if (mancanti.length) {
         mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
         return false;
