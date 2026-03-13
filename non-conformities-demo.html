@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Demo NC Mobile</title>
+  <style>
+    :root {
+      --bg: #edf2f8;
+      --surface: #ffffff;
+      --text: #122235;
+      --muted: #607087;
+      --line: #d8e1ec;
+      --primary: #0a63d8;
+      --primary-dark: #084da6;
+      --danger: #c82828;
+      --ok: #1c8a4b;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Segoe UI Variable Display", "Aptos", "SF Pro Display", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 5%, #d4e6ff 0%, transparent 34%),
+        radial-gradient(circle at 90% 95%, #d2f0de 0%, transparent 28%),
+        var(--bg);
+      padding: 16px;
+    }
+    .phone {
+      width: 100%;
+      max-width: 430px;
+      height: min(900px, 96vh);
+      border: 10px solid #111926;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #f7f9fc;
+      box-shadow: 0 24px 40px rgba(10, 20, 35, 0.35);
+      position: relative;
+    }
+    .notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 46%;
+      height: 22px;
+      border-radius: 0 0 12px 12px;
+      background: #111926;
+      z-index: 3;
+    }
+    .app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #f8fbff 0%, #edf3f9 100%);
+    }
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 28px 14px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title { margin: 0; font-size: 1.02rem; font-weight: 750; }
+    .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.76rem; }
+    .view {
+      display: none;
+      flex: 1;
+      overflow: auto;
+      padding: 14px;
+    }
+    .view.active { display: block; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+      color: #19314e;
+    }
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+    .btn.secondary { color: #15324f; background: #e8eef7; }
+    .btn.danger { color: #8c1c1c; background: #ffe9e9; }
+    .btn.block { width: 100%; }
+    .grid { display: grid; gap: 9px; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.75rem;
+      color: #3d536f;
+      font-weight: 650;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cdd8e5;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font: inherit;
+      color: #122235;
+      background: #fff;
+      font-size: 0.9rem;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    .menu-buttons { display: grid; gap: 10px; margin-top: 8px; }
+    .cards { display: grid; gap: 10px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 5px solid #b6c5d7;
+      border-radius: var(--radius);
+      padding: 10px;
+      cursor: pointer;
+    }
+    .card[data-sev="Critica"] { border-left-color: var(--danger); }
+    .card h3 { margin: 0 0 7px; font-size: 0.94rem; }
+    .meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .stato-Bozza { background: #f1f2f4; color: #47515e; border-color: #dce0e5; }
+    .stato-Aperta { background: #e8f0fe; color: #0a4ea6; border-color: #c7dafb; }
+    .stato-Inviata { background: #e7f8ee; color: #197e43; border-color: #c6edd6; }
+    .inline { display: flex; gap: 8px; }
+    .inline .btn { flex: 1; }
+    .images {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .img-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f6f9fd;
+      overflow: hidden;
+      position: relative;
+      min-height: 84px;
+    }
+    .img-item img { width: 100%; height: 84px; object-fit: cover; display: block; }
+    .img-item button {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 22px;
+      height: 22px;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(200, 40, 40, 0.95);
+      cursor: pointer;
+    }
+    .obs {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f9fcff;
+      padding: 9px;
+      margin-bottom: 8px;
+    }
+    .obs-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.79rem;
+      font-weight: 700;
+      color: #3e5672;
+    }
+    .alert {
+      display: none;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+    }
+    .alert.error { display: block; background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
+    .alert.ok { display: block; background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
+    .footer-actions {
+      position: sticky;
+      bottom: 0;
+      display: grid;
+      gap: 8px;
+      background: linear-gradient(180deg, rgba(236, 243, 250, 0) 0%, rgba(236, 243, 250, 1) 30%);
+      padding: 8px 0 2px;
+    }
+    .json {
+      margin: 0;
+      max-height: 160px;
+      overflow: auto;
+      border-radius: 10px;
+      background: #0f1a2d;
+      color: #d7e6fd;
+      padding: 9px;
+      font-size: 0.75rem;
+    }
+    .empty {
+      padding: 14px;
+      border: 1px dashed #cad7e5;
+      border-radius: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 460px) {
+      body { padding: 0; }
+      .phone { width: 100vw; height: 100vh; border: 0; border-radius: 0; max-width: none; }
+      .notch { display: none; }
+      .header { padding-top: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="app">
+      <header class="header">
+        <div>
+          <h1 class="title" id="titoloHeader">Menu</h1>
+          <p class="sub" id="sottoHeader">Demo mobile gestione non conformità</p>
+        </div>
+        <button class="btn secondary" id="btnIndietro" style="display:none;">Indietro</button>
+      </header>
+
+      <main class="view active" id="viewMenu">
+        <section class="panel">
+          <h2>Seleziona azione</h2>
+          <div class="menu-buttons">
+            <button class="btn primary block" id="vaiCrea">Crea NC</button>
+            <button class="btn secondary block" id="vaiVisualizza">Visualizza</button>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Note demo</h2>
+          <div style="font-size:0.84rem;color:#5d6f85;line-height:1.4;">
+            I dati vengono salvati localmente nel browser (localStorage), quindi restano disponibili per la schermata "Visualizza" e per la pagina separata di lettura dati.
+          </div>
+        </section>
+      </main>
+
+      <main class="view" id="viewCrea">
+        <div class="alert" id="alertForm"></div>
+
+        <section class="panel">
+          <h2>Dati non conformità</h2>
+          <div class="grid">
+            <div>
+              <label for="titolo">Titolo segnalazione *</label>
+              <input id="titolo" placeholder="Titolo breve">
+            </div>
+            <div>
+              <label for="descrizione">Descrizione *</label>
+              <textarea id="descrizione" placeholder="Descrivi la NC"></textarea>
+            </div>
+          </div>
+          <div class="grid cols-2" style="margin-top:8px;">
+            <div>
+              <label for="categoria">Categoria *</label>
+              <select id="categoria">
+                <option value="">Seleziona</option>
+                <option>Processo</option>
+                <option>Prodotto</option>
+                <option>Sicurezza</option>
+                <option>Documentazione</option>
+                <option>Audit</option>
+              </select>
+            </div>
+            <div>
+              <label for="gravita">Severità *</label>
+              <select id="gravita">
+                <option value="">Seleziona</option>
+                <option>Bassa</option>
+                <option>Media</option>
+                <option>Alta</option>
+                <option>Critica</option>
+              </select>
+            </div>
+            <div>
+              <label for="reparto">Reparto / Area *</label>
+              <input id="reparto" placeholder="Es. Assemblaggio">
+            </div>
+            <div>
+              <label for="luogo">Luogo *</label>
+              <input id="luogo" placeholder="Linea 1 - Postazione B2">
+            </div>
+            <div>
+              <label for="operatore">Operatore / Segnalatore *</label>
+              <input id="operatore" placeholder="Nome e cognome">
+            </div>
+            <div>
+              <label for="stato">Stato</label>
+              <select id="stato">
+                <option>Bozza</option>
+                <option>Aperta</option>
+                <option>Inviata</option>
+              </select>
+            </div>
+            <div>
+              <label for="dataNc">Data *</label>
+              <input id="dataNc" type="date">
+            </div>
+            <div>
+              <label for="oraNc">Ora *</label>
+              <input id="oraNc" type="time">
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <label for="riferimento">Lotto / Ordine / Riferimento</label>
+            <input id="riferimento" placeholder="LOT-2026-0001">
+          </div>
+          <div style="margin-top:8px;">
+            <label for="note">Note aggiuntive</label>
+            <textarea id="note" placeholder="Dettagli extra"></textarea>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Immagini</h2>
+          <div class="inline">
+            <button class="btn secondary" id="btnFoto" type="button">Scatta foto</button>
+            <button class="btn secondary" id="btnUpload" type="button">Carica immagine</button>
+          </div>
+          <input id="inputFoto" type="file" accept="image/*" capture="environment" hidden>
+          <input id="inputUpload" type="file" accept="image/*" multiple hidden>
+          <div id="grigliaImg" class="images"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Osservazioni aggiuntive</h2>
+          <div id="listaObs"></div>
+          <button class="btn secondary block" id="aggiungiObs" type="button">+ Aggiungi riga</button>
+        </section>
+
+        <section class="panel">
+          <h2>Anteprima JSON</h2>
+          <pre id="anteprimaJson" class="json">{}</pre>
+        </section>
+
+        <div class="footer-actions">
+          <button class="btn primary block" id="btnSalva">Salva</button>
+          <button class="btn danger block" id="btnSubmit">Submit</button>
+        </div>
+      </main>
+
+      <main class="view" id="viewVisualizza">
+        <section class="panel">
+          <h2>NC create e salvate</h2>
+          <div id="listaNc" class="cards"></div>
+        </section>
+        <section class="panel">
+          <button class="btn secondary block" id="btnEsportaJson">Esporta JSON</button>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "demo_nc_salvate_v2";
+    const viste = {
+      menu: document.getElementById("viewMenu"),
+      crea: document.getElementById("viewCrea"),
+      visualizza: document.getElementById("viewVisualizza")
+    };
+    const titoloHeader = document.getElementById("titoloHeader");
+    const sottoHeader = document.getElementById("sottoHeader");
+    const btnIndietro = document.getElementById("btnIndietro");
+    const alertForm = document.getElementById("alertForm");
+    const anteprimaJson = document.getElementById("anteprimaJson");
+    const listaNc = document.getElementById("listaNc");
+    const listaObs = document.getElementById("listaObs");
+    const grigliaImg = document.getElementById("grigliaImg");
+
+    const campi = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","stato","dataNc","oraNc","riferimento","note"];
+    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","dataNc","oraNc"];
+
+    let archivio = caricaArchivio();
+    let bozza = null;
+
+    function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
+    function dataAttuale() { return new Date().toISOString().slice(0, 10); }
+    function prossimoId() {
+      return archivio.reduce((max, nc) => Math.max(max, nc.id || 0), 0) + 1;
+    }
+
+    function modelloVuoto() {
+      return {
+        id: prossimoId(),
+        titolo: "",
+        descrizione: "",
+        categoria: "",
+        gravita: "",
+        reparto: "",
+        luogo: "",
+        operatore: "",
+        stato: "Bozza",
+        dataNc: dataAttuale(),
+        oraNc: oraAttuale(),
+        riferimento: "",
+        note: "",
+        osservazioni: [],
+        immagini: []
+      };
+    }
+
+    function normalizzaNc(nc) {
+      const base = modelloVuoto();
+      const out = Object.assign(base, nc || {});
+      if (!Array.isArray(out.osservazioni)) {
+        out.osservazioni = Array.isArray(nc && nc.observations) ? nc.observations : [];
+      }
+      if (!Array.isArray(out.immagini)) {
+        out.immagini = Array.isArray(nc && nc.images) ? nc.images : [];
+      }
+      return out;
+    }
+
+    function caricaArchivio() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.map(normalizzaNc) : [];
+      } catch {
+        return [];
+      }
+    }
+    function salvaArchivio() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(archivio));
+    }
+
+    function mostraVista(nome) {
+      Object.values(viste).forEach(v => v.classList.remove("active"));
+      viste[nome].classList.add("active");
+      if (nome === "menu") {
+        titoloHeader.textContent = "Menu";
+        sottoHeader.textContent = "Demo mobile gestione non conformità";
+        btnIndietro.style.display = "none";
+      }
+      if (nome === "crea") {
+        titoloHeader.textContent = "Crea NC";
+        sottoHeader.textContent = "Compila e salva la segnalazione";
+        btnIndietro.style.display = "inline-block";
+      }
+      if (nome === "visualizza") {
+        titoloHeader.textContent = "Visualizza NC";
+        sottoHeader.textContent = "Elenco NC salvate";
+        btnIndietro.style.display = "inline-block";
+        renderListaNc();
+      }
+    }
+
+    function apriCrea() {
+      bozza = normalizzaNc(modelloVuoto());
+      if (!Array.isArray(bozza.osservazioni)) bozza.osservazioni = [];
+      if (!Array.isArray(bozza.immagini)) bozza.immagini = [];
+      renderForm();
+      renderOsservazioni();
+      renderImmagini();
+      aggiornaAnteprima();
+      mostraVista("crea");
+    }
+
+    function renderForm() {
+      campi.forEach(c => {
+        const el = document.getElementById(c);
+        el.value = bozza[c] || "";
+        el.oninput = () => {
+          bozza[c] = el.value;
+          aggiornaAnteprima();
+        };
+      });
+      nascondiAlert();
+    }
+
+    function renderListaNc() {
+      if (!archivio.length) {
+        listaNc.innerHTML = `<div class="empty">Nessuna NC salvata.</div>`;
+        return;
+      }
+      const ordinato = [...archivio].sort((a, b) => b.id - a.id);
+      listaNc.innerHTML = ordinato.map(nc => `
+        <article class="card" data-id="${nc.id}" data-sev="${escapeHtml(nc.gravita || "")}">
+          <h3>#NC-${String(nc.id).padStart(4, "0")} · ${escapeHtml(nc.titolo || "Senza titolo")}</h3>
+          <div class="meta">
+            <span class="badge stato-${escapeHtml(nc.stato || "Bozza")}">${escapeHtml(nc.stato || "Bozza")}</span>
+            <span>${escapeHtml(nc.categoria || "-")}</span>
+            <span>${escapeHtml(nc.gravita || "-")}</span>
+          </div>
+          <div class="meta" style="margin-top:6px;">
+            <span>${escapeHtml((nc.dataNc || "-") + " " + (nc.oraNc || ""))}</span>
+            <span>${escapeHtml(nc.reparto || "-")}</span>
+          </div>
+        </article>
+      `).join("");
+
+      listaNc.querySelectorAll(".card").forEach(card => {
+        card.addEventListener("click", () => {
+          const id = Number(card.dataset.id);
+          const trovato = archivio.find(x => x.id === id);
+          if (!trovato) return;
+          bozza = normalizzaNc(JSON.parse(JSON.stringify(trovato)));
+          renderForm();
+          renderOsservazioni();
+          renderImmagini();
+          aggiornaAnteprima();
+          mostraVista("crea");
+        });
+      });
+    }
+
+    function renderOsservazioni() {
+      bozza = normalizzaNc(bozza || {});
+      const osservazioni = Array.isArray(bozza.osservazioni) ? bozza.osservazioni : [];
+      bozza.osservazioni = osservazioni;
+      if (!osservazioni.length) {
+        listaObs.innerHTML = `<div class="empty" style="padding:10px;">Nessuna osservazione.</div>`;
+        return;
+      }
+      listaObs.innerHTML = osservazioni.map((o, i) => `
+        <div class="obs">
+          <div class="obs-head">
+            <span>Osservazione ${i + 1}</span>
+            <button class="btn danger" type="button" data-del-obs="${i}">Elimina</button>
+          </div>
+          <div class="grid cols-2">
+            <div>
+              <label>Tipo</label>
+              <input data-obs-idx="${i}" data-obs-key="tipo" value="${escapeAttr(o.tipo || "")}">
+            </div>
+            <div>
+              <label>Valore / Codice</label>
+              <input data-obs-idx="${i}" data-obs-key="valore" value="${escapeAttr(o.valore || "")}">
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <label>Descrizione</label>
+            <input data-obs-idx="${i}" data-obs-key="descrizione" value="${escapeAttr(o.descrizione || "")}">
+          </div>
+          <div style="margin-top:8px;">
+            <label>Note</label>
+            <input data-obs-idx="${i}" data-obs-key="note" value="${escapeAttr(o.note || "")}">
+          </div>
+        </div>
+      `).join("");
+
+      listaObs.querySelectorAll("[data-obs-key]").forEach(inp => {
+        inp.addEventListener("input", e => {
+          const i = Number(e.target.dataset.obsIdx);
+          const key = e.target.dataset.obsKey;
+          bozza.observazioni[i][key] = e.target.value;
+          aggiornaAnteprima();
+        });
+      });
+      listaObs.querySelectorAll("[data-del-obs]").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const i = Number(e.target.dataset.delObs);
+          bozza.observazioni.splice(i, 1);
+          renderOsservazioni();
+          aggiornaAnteprima();
+        });
+      });
+    }
+
+    function renderImmagini() {
+      bozza = normalizzaNc(bozza || {});
+      const immagini = Array.isArray(bozza.immagini) ? bozza.immagini : [];
+      bozza.immagini = immagini;
+      if (!immagini.length) {
+        grigliaImg.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:10px;">Nessuna immagine.</div>`;
+        return;
+      }
+      grigliaImg.innerHTML = immagini.map((img, i) => `
+        <div class="img-item">
+          <img src="${img.src}" alt="img-${i}">
+          <button type="button" data-del-img="${i}">×</button>
+        </div>
+      `).join("");
+
+      grigliaImg.querySelectorAll("[data-del-img]").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const i = Number(e.target.dataset.delImg);
+          bozza.immagini.splice(i, 1);
+          renderImmagini();
+          aggiornaAnteprima();
+        });
+      });
+    }
+
+    function aggiornaAnteprima() {
+      anteprimaJson.textContent = JSON.stringify(bozza, null, 2);
+    }
+
+    function validaBozza() {
+      const mancanti = obbligatori.filter(c => !String(bozza[c] || "").trim());
+      if (mancanti.length) {
+        mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
+        return false;
+      }
+      return true;
+    }
+
+    function upsertBozza() {
+      const i = archivio.findIndex(x => x.id === bozza.id);
+      if (i === -1) archivio.push(JSON.parse(JSON.stringify(bozza)));
+      else archivio[i] = JSON.parse(JSON.stringify(bozza));
+      salvaArchivio();
+    }
+
+    function mostraAlert(tipo, msg) {
+      alertForm.className = "alert " + (tipo === "ok" ? "ok" : "error");
+      alertForm.textContent = msg;
+    }
+    function nascondiAlert() {
+      alertForm.className = "alert";
+      alertForm.textContent = "";
+    }
+
+    function submitNc() {
+      if (!validaBozza()) return;
+      if (!confirm("Confermi il submit della NC?")) return;
+      bozza.stato = "Inviata";
+      upsertBozza();
+      renderForm();
+      aggiornaAnteprima();
+      mostraAlert("ok", "NC inviata e salvata localmente.");
+      renderListaNc();
+    }
+
+    function salvaNc() {
+      if (!validaBozza()) return;
+      upsertBozza();
+      mostraAlert("ok", "NC salvata correttamente.");
+      renderListaNc();
+    }
+
+    function aggiungiFile(fileList) {
+      const files = Array.from(fileList || []);
+      files.forEach(file => {
+        if (!file.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          bozza.immagini.push({
+            id: "img_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+            nome: file.name || "immagine",
+            src: ev.target.result
+          });
+          renderImmagini();
+          aggiornaAnteprima();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function esportaJson() {
+      const blob = new Blob([JSON.stringify(archivio, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "nc-salvate.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function(ch) {
+        if (ch === "&") return "&amp;";
+        if (ch === "<") return "&lt;";
+        if (ch === ">") return "&gt;";
+        if (ch === "\"") return "&quot;";
+        return "&#39;";
+      });
+    }
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/`/g, "&#96;");
+    }
+
+    document.getElementById("vaiCrea").addEventListener("click", apriCrea);
+    document.getElementById("vaiCrea").onclick = apriCrea;
+    document.getElementById("vaiVisualizza").addEventListener("click", () => mostraVista("visualizza"));
+    document.getElementById("vaiVisualizza").onclick = function() { mostraVista("visualizza"); };
+    btnIndietro.addEventListener("click", () => mostraVista("menu"));
+    document.getElementById("aggiungiObs").addEventListener("click", () => {
+      bozza.observazioni.push({ tipo: "", descrizione: "", note: "", valore: "" });
+      renderOsservazioni();
+      aggiornaAnteprima();
+    });
+    document.getElementById("btnSalva").addEventListener("click", salvaNc);
+    document.getElementById("btnSubmit").addEventListener("click", submitNc);
+    document.getElementById("btnFoto").addEventListener("click", () => document.getElementById("inputFoto").click());
+    document.getElementById("btnUpload").addEventListener("click", () => document.getElementById("inputUpload").click());
+    document.getElementById("inputFoto").addEventListener("change", e => aggiungiFile(e.target.files));
+    document.getElementById("inputUpload").addEventListener("change", e => aggiungiFile(e.target.files));
+    document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
+
+    mostraVista("menu");
+  </script>
+</body>
+</html>
