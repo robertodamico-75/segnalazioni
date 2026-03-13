@@ -559,7 +559,6 @@
           <div id="listaNc" class="cards"></div>
           <div class="inline" style="margin-top:10px;">
             <button class="btn secondary" id="btnApriSelezionata" disabled>Apri selezionata</button>
-            <button class="btn danger" id="btnEliminaSelezionata" disabled>Elimina selezionata</button>
           </div>
         </section>
         <section class="panel">
@@ -776,11 +775,9 @@
 
     function renderListaNc() {
       const btnApriSel = document.getElementById("btnApriSelezionata");
-      const btnEliminaSel = document.getElementById("btnEliminaSelezionata");
       const aggiornaAzioniSelezione = () => {
         const disabilita = ncSelezionataId == null || !archivio.some(x => x.id === ncSelezionataId);
         btnApriSel.disabled = disabilita;
-        btnEliminaSel.disabled = disabilita;
       };
       if (!archivio.length) {
         ncSelezionataId = null;
@@ -830,23 +827,6 @@
       aggiornaAnteprima();
       mostraVista("crea");
     }
-    async function eliminaNcSelezionata() {
-      if (ncSelezionataId == null) {
-        mostraToast("error", "Seleziona una NC.");
-        return;
-      }
-      const trovato = archivio.find(x => x.id === ncSelezionataId);
-      if (!trovato) {
-        mostraToast("error", "NC selezionata non trovata.");
-        return;
-      }
-      if (!confirm("Confermi l'eliminazione della NC selezionata?")) return;
-      archivio = archivio.filter(x => x.id !== ncSelezionataId);
-      ncSelezionataId = null;
-      renderListaNc();
-      mostraToast("ok", "NC eliminata (solo elenco corrente).");
-    }
-
     function renderOsservazioni() {
       bozza = normalizzaNc(bozza || {});
       const osservazioni = Array.isArray(bozza.osservazioni) ? bozza.osservazioni : [];
@@ -1102,7 +1082,6 @@
     document.getElementById("inputUpload").addEventListener("change", e => aggiungiFile(e.target.files));
     document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
     document.getElementById("btnApriSelezionata").addEventListener("click", apriNcSelezionata);
-    document.getElementById("btnEliminaSelezionata").addEventListener("click", eliminaNcSelezionata);
     document.getElementById("btnGps").addEventListener("click", acquisisciPosizione);
     document.getElementById("btnIndirizzo").addEventListener("click", acquisisciIndirizzo);
     document.getElementById("btnApriArchivio").addEventListener("click", async () => {
