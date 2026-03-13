@@ -116,6 +116,10 @@
       padding: 10px 12px;
       font-weight: 800;
       font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
     }
     .logo-chip.asi {
       background: linear-gradient(135deg, #fff8ef, #ffe9d0);
@@ -126,6 +130,29 @@
       background: linear-gradient(135deg, #ebf6ff, #d9ecff);
       color: #0a4ea6;
       border-color: #c0dafb;
+    }
+    .logo-chip img {
+      max-width: 100%;
+      max-height: 34px;
+      object-fit: contain;
+      display: block;
+    }
+    .icon-btn {
+      width: 44px;
+      min-width: 44px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      font-size: 1.15rem;
+      line-height: 1;
+      flex: 0 0 auto !important;
+    }
+    .save-btn-big {
+      width: 74px;
+      height: 74px;
+      border-radius: 20px;
+      font-size: 2rem;
+      justify-self: center;
     }
     label { display: block; margin-bottom: 4px; font-size: 0.75rem; color: #3d536f; font-weight: 650; }
     input, select, textarea {
@@ -480,8 +507,14 @@
                 <section className="panel">
                   <div className="brand-title">QDA-QSW Track</div>
                   <div className="brand-logos">
-                    <div className="logo-chip asi">ASI DataMyte Italia</div>
-                    <div className="logo-chip alpac">ALPAC</div>
+                    <div className="logo-chip asi">
+                      <img src="./logo-asi-datamyte.png" alt="ASI DataMyte Italia" onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling.style.display = "block"; }} />
+                      <span style={{ display: "none" }}>ASI DataMyte Italia</span>
+                    </div>
+                    <div className="logo-chip alpac">
+                      <img src="./logo-alpac.png" alt="ALPAC" onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling.style.display = "block"; }} />
+                      <span style={{ display: "none" }}>ALPAC</span>
+                    </div>
                   </div>
                 </section>
                 <section className="panel">
@@ -516,7 +549,7 @@
                     <div><label>Famiglia prodotto ALPAC *</label><select className="required-field" value={bozza.categoria} onChange={e => setBozza({ ...bozza, categoria: e.target.value })}><option value="">Seleziona</option><option>Sistemi posa</option><option>Monoblocco</option><option>Controtelaio</option><option>Cassonetto</option><option>Altro</option></select></div>
                     <div><label>Severita *</label><select className="required-field" value={bozza.gravita} onChange={e => setBozza({ ...bozza, gravita: e.target.value })}><option value="">Seleziona</option><option>Bassa</option><option>Media</option><option>Alta</option><option>Critica</option></select></div>
                     <div><label>Cantiere / Cliente *</label><input className="required-field" value={bozza.reparto} onChange={e => setBozza({ ...bozza, reparto: e.target.value })} /></div>
-                    <div><label>Posizione geografica (indirizzo) *</label><div className="inline tight"><input value={bozza.luogo} onChange={e => setBozza({ ...bozza, luogo: e.target.value })} /><button className="btn secondary" type="button" onClick={acquisisciIndirizzo}>📍 Carica via/citta</button></div></div>
+                    <div><label>Posizione geografica (indirizzo) *</label><div className="inline tight"><input value={bozza.luogo} onChange={e => setBozza({ ...bozza, luogo: e.target.value })} /><button className="btn secondary icon-btn" type="button" onClick={acquisisciIndirizzo} title="Carica via/citta" aria-label="Carica via citta">📍</button></div></div>
                     <div><label>Operatore / Segnalatore *</label><input className="required-field" value={bozza.operatore} onChange={e => setBozza({ ...bozza, operatore: e.target.value })} /></div>
                     <div><label>Stato pratica</label><select value={bozza.stato} onChange={e => setBozza({ ...bozza, stato: e.target.value })}><option>Bozza</option><option>Aperta</option><option>Inviata</option></select></div>
                   </div>
@@ -525,7 +558,7 @@
                     <div><label>Ora *</label><input className="required-field" type="time" value={bozza.oraNc} onChange={e => setBozza({ ...bozza, oraNc: e.target.value })} /></div>
                   </div>
                   <div style={{ marginTop: "8px" }}><label>Numero ordine / commessa *</label><input className="required-field" value={bozza.riferimento} onChange={e => setBozza({ ...bozza, riferimento: e.target.value })} /></div>
-                  <div style={{ marginTop: "8px" }}><label>Coordinate GPS</label><div className="inline"><input value={bozza.gpsCoord} readOnly /><button className="btn secondary" type="button" onClick={acquisisciPosizione}>🛰 Usa posizione attuale</button></div></div>
+                  <div style={{ marginTop: "8px" }}><label>Coordinate GPS</label><div className="inline"><input value={bozza.gpsCoord} readOnly /><button className="btn secondary icon-btn" type="button" onClick={acquisisciPosizione} title="Usa posizione attuale" aria-label="Usa posizione attuale">📍</button></div></div>
                   <div style={{ marginTop: "8px" }}><label>Note aggiuntive</label><textarea value={bozza.note} onChange={e => setBozza({ ...bozza, note: e.target.value })} /></div>
                 </section>
 
@@ -561,7 +594,7 @@
                 </section>
 
                 <div className="footer-actions">
-                  <button className="btn primary block" onClick={onSalva}>💾 Salva</button>
+                  <button className="btn primary save-btn-big" onClick={onSalva} title="Salva" aria-label="Salva">💾</button>
                   <button className="btn danger block" onClick={onSubmit}>📤 Submit</button>
                 </div>
               </>
