@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>QDA-QSW Track</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="QDA-QSW Track">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <style>
     :root {
       --bg: #edf2f8;
@@ -89,7 +93,7 @@
       display: grid;
       place-items: center;
     }
-    .view { flex: 1; overflow: auto; padding: 14px; }
+    .view { flex: 1; overflow: auto; padding: 14px 14px 142px; }
     .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 12px; }
     .panel h2 { margin: 0 0 10px; font-size: 0.88rem; color: #19314e; }
     .btn { border: 0; border-radius: 12px; padding: 12px 14px; font-size: 0.92rem; font-weight: 700; cursor: pointer; }
@@ -157,6 +161,7 @@
     label { display: block; margin-bottom: 4px; font-size: 0.75rem; color: #3d536f; font-weight: 650; }
     input, select, textarea {
       width: 100%;
+      min-width: 0;
       border: 1px solid #cdd8e5;
       border-radius: 10px;
       padding: 9px 10px;
@@ -165,6 +170,13 @@
       background: #fff;
       font-size: 0.9rem;
     }
+    input[type="date"], input[type="time"] {
+      appearance: none;
+      -webkit-appearance: none;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .date-time-row > * { min-width: 0; }
     textarea { min-height: 80px; resize: vertical; }
     .required-field { background: #fff8bf; border-color: #dccb67; }
     .inline { display: flex; gap: 8px; }
@@ -212,13 +224,14 @@
       position: absolute;
       left: 10px;
       right: 10px;
-      bottom: 10px;
+      bottom: calc(96px + env(safe-area-inset-bottom));
       z-index: 30;
       border-radius: 12px;
       padding: 10px 12px;
       font-size: 0.86rem;
       font-weight: 700;
       box-shadow: 0 10px 20px rgba(12, 22, 34, 0.25);
+      pointer-events: none;
     }
     .toast-fixed.error { background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
     .toast-fixed.ok { background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
@@ -240,6 +253,8 @@
       .header { padding-top: 16px; }
       .cols-2, .date-time-row { grid-template-columns: 1fr; }
       input, select, textarea { font-size: 16px; }
+      .view { padding-bottom: 154px; }
+      .toast-fixed { bottom: calc(108px + env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
