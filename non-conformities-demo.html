@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Demo NC Mobile</title>
+  <title>QDA-QSW Tracking</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a63d8'/%3E%3Cpath d='M16 22h22l10 10v10a6 6 0 0 1-6 6H22a6 6 0 0 1-6-6V22z' fill='white'/%3E%3Cpath d='M38 22v10h10' fill='none' stroke='%230a63d8' stroke-width='4'/%3E%3Cpath d='M24 38l5 5 11-11' fill='none' stroke='%230a63d8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <style>
     :root {
       --bg: #edf2f8;
@@ -134,6 +135,30 @@
       margin: 0 0 10px;
       font-size: 0.88rem;
       color: #19314e;
+    }
+    .menu-brand {
+      text-align: center;
+      padding: 18px 12px;
+    }
+    .menu-brand img {
+      width: min(220px, 86%);
+      height: auto;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 10px;
+    }
+    .menu-brand .fallback {
+      font-weight: 900;
+      color: #1f4f8b;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .menu-brand .asi {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #0f3f77;
+      letter-spacing: 0.05em;
     }
     .btn {
       border: 0;
@@ -335,6 +360,11 @@
       </header>
 
       <main class="view active" id="viewMenu">
+        <section class="panel menu-brand">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/640px-ALPAC_logo.svg.png" alt="ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <div class="fallback">ALPAC</div>
+          <div class="asi">ASIDATAMYTE.IT</div>
+        </section>
         <section class="panel">
           <h2>Seleziona azione</h2>
           <div class="menu-buttons">
@@ -343,9 +373,18 @@
           </div>
         </section>
         <section class="panel">
+          <h2>Archivio JSON</h2>
+          <div class="menu-buttons">
+            <button class="btn secondary block" id="btnApriArchivio">Apri archivio JSON</button>
+            <button class="btn secondary block" id="btnNuovoArchivio">Crea / collega archivio JSON</button>
+          </div>
+          <input id="inputArchivio" type="file" accept="application/json,.json" hidden>
+          <div id="statoArchivio" style="font-size:0.8rem;color:#4f6278;margin-top:8px;">Archivio non collegato.</div>
+        </section>
+        <section class="panel">
           <h2>Note demo</h2>
           <div style="font-size:0.84rem;color:#5d6f85;line-height:1.4;">
-            Flusso dedicato alla raccolta problematiche su installazioni di prodotti ALPAC per la gestione del foro finestra. I dati vengono salvati localmente nel browser (localStorage).
+            Flusso dedicato alla raccolta problematiche su installazioni di prodotti ALPAC per la gestione del foro finestra. I dati vengono salvati su file JSON collegato (oppure esportati in download JSON se il browser non supporta il salvataggio diretto).
           </div>
         </section>
       </main>
@@ -480,7 +519,6 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "demo_nc_salvate_v2";
     const viste = {
       menu: document.getElementById("viewMenu"),
       crea: document.getElementById("viewCrea"),
@@ -496,6 +534,8 @@
     const grigliaImg = document.getElementById("grigliaImg");
     const gpsCoord = document.getElementById("gpsCoord");
     const toastNotifica = document.getElementById("toastNotifica");
+    const statoArchivio = document.getElementById("statoArchivio");
+    const inputArchivio = document.getElementById("inputArchivio");
 
     const campi = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","stato","dataNc","oraNc","riferimento","note"];
     const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","dataNc","oraNc","riferimento"];
@@ -503,6 +543,8 @@
     let archivio = caricaArchivio();
     let bozza = null;
     let timerToast = null;
+    let fileHandle = null;
+    let nomeArchivio = "";
 
     function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
     function dataAttuale() { return new Date().toISOString().slice(0, 10); }
@@ -545,17 +587,76 @@
     }
 
     function caricaArchivio() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.map(normalizzaNc) : [];
-      } catch {
-        return [];
+      return [];
+    }
+    function aggiornaStatoArchivio() {
+      if (!statoArchivio) return;
+      if (nomeArchivio) {
+        statoArchivio.textContent = "Archivio collegato: " + nomeArchivio;
+      } else {
+        statoArchivio.textContent = "Archivio non collegato.";
       }
     }
-    function salvaArchivio() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(archivio));
+    function scaricaTesto(nomeFile, testo) {
+      const blob = new Blob([testo], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nomeFile || "nc-archivio.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    async function salvaArchivio() {
+      const json = JSON.stringify(archivio, null, 2);
+      if (fileHandle && window.showSaveFilePicker) {
+        const writable = await fileHandle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        return;
+      }
+      scaricaTesto(nomeArchivio || "nc-archivio.json", json);
+    }
+    function caricaArchivioDaTesto(testo) {
+      const parsed = JSON.parse(testo);
+      archivio = Array.isArray(parsed) ? parsed.map(normalizzaNc) : [];
+      renderListaNc();
+    }
+    async function apriArchivioDaPicker() {
+      if (window.showOpenFilePicker) {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
+        });
+        if (!handle) return;
+        fileHandle = handle;
+        nomeArchivio = handle.name || "nc-archivio.json";
+        const file = await handle.getFile();
+        const testo = await file.text();
+        caricaArchivioDaTesto(testo || "[]");
+        aggiornaStatoArchivio();
+        mostraAlert("ok", "Archivio JSON caricato.");
+        return;
+      }
+      inputArchivio.click();
+    }
+    async function creaOCollegaArchivio() {
+      if (window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: nomeArchivio || "nc-archivio.json",
+          types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
+        });
+        if (!handle) return;
+        fileHandle = handle;
+        nomeArchivio = handle.name || "nc-archivio.json";
+        await salvaArchivio();
+        aggiornaStatoArchivio();
+        mostraAlert("ok", "Archivio JSON collegato.");
+        return;
+      }
+      nomeArchivio = nomeArchivio || "nc-archivio.json";
+      await salvaArchivio();
+      aggiornaStatoArchivio();
+      mostraAlert("ok", "Archivio esportato in download JSON.");
     }
 
     function mostraVista(nome) {
@@ -739,11 +840,11 @@
       return true;
     }
 
-    function upsertBozza() {
+    async function upsertBozza() {
       const i = archivio.findIndex(x => x.id === bozza.id);
       if (i === -1) archivio.push(JSON.parse(JSON.stringify(bozza)));
       else archivio[i] = JSON.parse(JSON.stringify(bozza));
-      salvaArchivio();
+      await salvaArchivio();
     }
 
     function mostraAlert(tipo, msg) {
@@ -766,22 +867,22 @@
       }, 3600);
     }
 
-    function submitNc() {
+    async function submitNc() {
       if (!validaBozza()) return;
       if (!confirm("Confermi il submit della NC?")) return;
       bozza.stato = "Inviata";
-      upsertBozza();
+      await upsertBozza();
       renderForm();
       aggiornaAnteprima();
-      mostraAlert("ok", "NC inviata e salvata localmente.");
+      mostraAlert("ok", "NC inviata e salvata su archivio JSON.");
       renderListaNc();
       mostraVista("menu");
     }
 
-    function salvaNc() {
+    async function salvaNc() {
       if (!validaBozza()) return;
-      upsertBozza();
-      mostraAlert("ok", "NC salvata correttamente.");
+      await upsertBozza();
+      mostraAlert("ok", "NC salvata su archivio JSON.");
       renderListaNc();
     }
 
@@ -804,13 +905,7 @@
     }
 
     function esportaJson() {
-      const blob = new Blob([JSON.stringify(archivio, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "nc-salvate.json";
-      a.click();
-      URL.revokeObjectURL(url);
+      scaricaTesto(nomeArchivio || "nc-archivio.json", JSON.stringify(archivio, null, 2));
     }
     function acquisisciPosizione() {
       if (!("geolocation" in navigator)) {
@@ -910,7 +1005,37 @@
     document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
     document.getElementById("btnGps").addEventListener("click", acquisisciPosizione);
     document.getElementById("btnIndirizzo").addEventListener("click", acquisisciIndirizzo);
+    document.getElementById("btnApriArchivio").addEventListener("click", async () => {
+      try {
+        await apriArchivioDaPicker();
+      } catch {
+        mostraAlert("error", "Impossibile aprire archivio JSON.");
+      }
+    });
+    document.getElementById("btnNuovoArchivio").addEventListener("click", async () => {
+      try {
+        await creaOCollegaArchivio();
+      } catch {
+        mostraAlert("error", "Impossibile creare/collegare archivio JSON.");
+      }
+    });
+    inputArchivio.addEventListener("change", async e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        const testo = await file.text();
+        nomeArchivio = file.name || "nc-archivio.json";
+        caricaArchivioDaTesto(testo || "[]");
+        aggiornaStatoArchivio();
+        mostraAlert("ok", "Archivio JSON importato.");
+      } catch {
+        mostraAlert("error", "File JSON non valido.");
+      } finally {
+        e.target.value = "";
+      }
+    });
 
+    aggiornaStatoArchivio();
     mostraVista("menu");
   </script>
 </body>
