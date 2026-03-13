@@ -102,6 +102,31 @@
     .cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .date-time-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .menu-buttons { display: grid; gap: 10px; margin-top: 8px; }
+    .brand-title {
+      font-size: 1.12rem;
+      font-weight: 900;
+      color: #12385f;
+      letter-spacing: 0.02em;
+      margin-bottom: 10px;
+    }
+    .brand-logos { display: grid; gap: 8px; }
+    .logo-chip {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+    .logo-chip.asi {
+      background: linear-gradient(135deg, #fff8ef, #ffe9d0);
+      color: #6a3a00;
+      border-color: #f1d4ab;
+    }
+    .logo-chip.alpac {
+      background: linear-gradient(135deg, #ebf6ff, #d9ecff);
+      color: #0a4ea6;
+      border-color: #c0dafb;
+    }
     label { display: block; margin-bottom: 4px; font-size: 0.75rem; color: #3d536f; font-weight: 650; }
     input, select, textarea {
       width: 100%;
@@ -180,7 +205,7 @@
   <script type="text/babel">
     const { useEffect, useMemo, useRef, useState } = React;
 
-    const APP_VERSION = "v2026.03.13.4-react";
+    const APP_VERSION = "v2026.03.13.5-react";
     const STORAGE_KEY = "qda_qsw_archivio_v1";
     const archivioFissoPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
@@ -300,7 +325,7 @@
         const mancanti = validaBozza(bozza);
         if (mancanti.length) return mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
         await upsertBozza({ ...bozza });
-        mostraAlert("ok", "NC salvata su archivio JSON.");
+        mostraAlert("ok", "NC salvata su Database.");
       };
       const onSubmit = async () => {
         const mancanti = validaBozza(bozza);
@@ -309,7 +334,7 @@
         const inviata = { ...bozza, stato: "Inviata" };
         setBozza(inviata);
         await upsertBozza(inviata);
-        mostraAlert("ok", "NC inviata e salvata su archivio JSON.");
+        mostraAlert("ok", "NC inviata e salvata su Database.");
         setVista("menu");
       };
 
@@ -326,12 +351,12 @@
             const loaded = normalizzaArchivio(JSON.parse(testo || "{}"));
             setArchivio(loaded);
             await salvaArchivio(loaded);
-            mostraAlert("ok", "Archivio JSON caricato.");
+            mostraAlert("ok", "Database caricato.");
             return;
           }
           inputArchivioRef.current?.click();
         } catch {
-          mostraAlert("error", "Impossibile aprire archivio JSON.");
+          mostraAlert("error", "Impossibile aprire Database.");
         }
       };
 
@@ -344,9 +369,9 @@
           fileHandleRef.current = handle;
           setNomeArchivio(archivioFissoNome);
           await salvaArchivio(archivio);
-          mostraAlert("ok", "Archivio JSON collegato.");
+          mostraAlert("ok", "Database collegato.");
         } catch {
-          mostraAlert("error", "Impossibile creare/collegare archivio JSON.");
+          mostraAlert("error", "Impossibile creare/collegare Database.");
         }
       };
 
@@ -360,7 +385,7 @@
           setNomeArchivio(archivioFissoNome);
           setArchivio(loaded);
           await salvaArchivio(loaded);
-          mostraAlert("ok", "Archivio JSON importato.");
+          mostraAlert("ok", "Database importato.");
         } catch {
           mostraAlert("error", "File JSON non valido.");
         } finally {
@@ -453,20 +478,27 @@
             {vista === "menu" && (
               <>
                 <section className="panel">
-                  <h2>Seleziona azione</h2>
-                  <div className="menu-buttons">
-                    <button className="btn primary block" onClick={apriCrea}>Crea NC</button>
-                    <button className="btn secondary block" onClick={() => setVista("visualizza")}>Visualizza</button>
+                  <div className="brand-title">QDA-QSW Track</div>
+                  <div className="brand-logos">
+                    <div className="logo-chip asi">ASI DataMyte Italia</div>
+                    <div className="logo-chip alpac">ALPAC</div>
                   </div>
                 </section>
                 <section className="panel">
-                  <h2>Archivio JSON</h2>
+                  <h2>Seleziona azione</h2>
                   <div className="menu-buttons">
-                    <button className="btn secondary block" onClick={apriArchivioDaPicker}>Apri archivio JSON</button>
-                    <button className="btn secondary block" onClick={creaOCollegaArchivio}>Crea / collega archivio JSON</button>
+                    <button className="btn primary block" onClick={apriCrea}>➕ Crea NC</button>
+                    <button className="btn secondary block" onClick={() => setVista("visualizza")}>👁 Visualizza</button>
+                  </div>
+                </section>
+                <section className="panel">
+                  <h2>Database</h2>
+                  <div className="menu-buttons">
+                    <button className="btn secondary block" onClick={apriArchivioDaPicker}>Apri Database</button>
+                    <button className="btn secondary block" onClick={creaOCollegaArchivio}>Crea / collega Database</button>
                   </div>
                   <input ref={inputArchivioRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
-                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px" }}>Archivio fisso: {archivioFissoPath}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px" }}>Database fisso: {archivioFissoPath}</div>
                 </section>
               </>
             )}
@@ -484,7 +516,7 @@
                     <div><label>Famiglia prodotto ALPAC *</label><select className="required-field" value={bozza.categoria} onChange={e => setBozza({ ...bozza, categoria: e.target.value })}><option value="">Seleziona</option><option>Sistemi posa</option><option>Monoblocco</option><option>Controtelaio</option><option>Cassonetto</option><option>Altro</option></select></div>
                     <div><label>Severita *</label><select className="required-field" value={bozza.gravita} onChange={e => setBozza({ ...bozza, gravita: e.target.value })}><option value="">Seleziona</option><option>Bassa</option><option>Media</option><option>Alta</option><option>Critica</option></select></div>
                     <div><label>Cantiere / Cliente *</label><input className="required-field" value={bozza.reparto} onChange={e => setBozza({ ...bozza, reparto: e.target.value })} /></div>
-                    <div><label>Posizione geografica (indirizzo) *</label><div className="inline tight"><input value={bozza.luogo} onChange={e => setBozza({ ...bozza, luogo: e.target.value })} /><button className="btn secondary" type="button" onClick={acquisisciIndirizzo}>Carica via/citta</button></div></div>
+                    <div><label>Posizione geografica (indirizzo) *</label><div className="inline tight"><input value={bozza.luogo} onChange={e => setBozza({ ...bozza, luogo: e.target.value })} /><button className="btn secondary" type="button" onClick={acquisisciIndirizzo}>📍 Carica via/citta</button></div></div>
                     <div><label>Operatore / Segnalatore *</label><input className="required-field" value={bozza.operatore} onChange={e => setBozza({ ...bozza, operatore: e.target.value })} /></div>
                     <div><label>Stato pratica</label><select value={bozza.stato} onChange={e => setBozza({ ...bozza, stato: e.target.value })}><option>Bozza</option><option>Aperta</option><option>Inviata</option></select></div>
                   </div>
@@ -493,7 +525,7 @@
                     <div><label>Ora *</label><input className="required-field" type="time" value={bozza.oraNc} onChange={e => setBozza({ ...bozza, oraNc: e.target.value })} /></div>
                   </div>
                   <div style={{ marginTop: "8px" }}><label>Numero ordine / commessa *</label><input className="required-field" value={bozza.riferimento} onChange={e => setBozza({ ...bozza, riferimento: e.target.value })} /></div>
-                  <div style={{ marginTop: "8px" }}><label>Coordinate GPS</label><div className="inline"><input value={bozza.gpsCoord} readOnly /><button className="btn secondary" type="button" onClick={acquisisciPosizione}>Usa posizione attuale</button></div></div>
+                  <div style={{ marginTop: "8px" }}><label>Coordinate GPS</label><div className="inline"><input value={bozza.gpsCoord} readOnly /><button className="btn secondary" type="button" onClick={acquisisciPosizione}>🛰 Usa posizione attuale</button></div></div>
                   <div style={{ marginTop: "8px" }}><label>Note aggiuntive</label><textarea value={bozza.note} onChange={e => setBozza({ ...bozza, note: e.target.value })} /></div>
                 </section>
 
@@ -529,8 +561,8 @@
                 </section>
 
                 <div className="footer-actions">
-                  <button className="btn primary block" onClick={onSalva}>Salva</button>
-                  <button className="btn danger block" onClick={onSubmit}>Submit</button>
+                  <button className="btn primary block" onClick={onSalva}>💾 Salva</button>
+                  <button className="btn danger block" onClick={onSubmit}>📤 Submit</button>
                 </div>
               </>
             )}
