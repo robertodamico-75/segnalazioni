@@ -271,7 +271,7 @@
   <script type="text/babel">
     const { useEffect, useMemo, useRef, useState } = React;
 
-    const APP_VERSION = "v2026.03.13.5-react";
+    const APP_VERSION = "v2026.03.13.7-react";
     const STORAGE_KEY = "qda_qsw_archivio_v1";
     const archivioFissoPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
@@ -368,6 +368,18 @@
         };
         caricaArchivioFisso();
       }, []);
+      useEffect(() => {
+        if (!alert.msg) return;
+        const timer = setTimeout(() => {
+          setAlert({ tipo: "", msg: "" });
+        }, 2600);
+        return () => clearTimeout(timer);
+      }, [alert.msg]);
+      useEffect(() => {
+        if (vista !== "crea" && alert.msg) {
+          setAlert({ tipo: "", msg: "" });
+        }
+      }, [vista]);
 
       const salvaArchivio = async (nextArchivio) => {
         const json = serializzaArchivio(nextArchivio);
@@ -681,7 +693,7 @@
               </>
             )}
           </main>
-          {alert.msg && <div className={"toast-fixed " + (alert.tipo === "ok" ? "ok" : "error")}>{alert.msg}</div>}
+          {vista === "crea" && alert.msg && <div className={"toast-fixed " + (alert.tipo === "ok" ? "ok" : "error")}>{alert.msg}</div>}
         </>
       );
     }
