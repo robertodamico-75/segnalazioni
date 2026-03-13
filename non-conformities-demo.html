@@ -1,14 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>QDA-QSW Track</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a63d8'/%3E%3Cpath d='M16 22h22l10 10v10a6 6 0 0 1-6 6H22a6 6 0 0 1-6-6V22z' fill='white'/%3E%3Cpath d='M38 22v10h10' fill='none' stroke='%230a63d8' stroke-width='4'/%3E%3Cpath d='M24 38l5 5 11-11' fill='none' stroke='%230a63d8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="QDA-QSW Track">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <style>
     :root {
       --bg: #edf2f8;
@@ -77,157 +72,39 @@
       align-items: center;
       justify-content: space-between;
     }
-    .header-center {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      flex: 1;
-      padding: 0 6px;
-    }
+    .header-center { display: flex; flex-direction: column; min-width: 0; flex: 1; padding: 0 6px; }
+    .btn.back { min-width: 42px; width: 42px; height: 42px; padding: 0; font-size: 1.2rem; font-weight: 800; border-radius: 10px; }
+    .title { margin: 0; font-size: 1.02rem; font-weight: 750; }
+    .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.76rem; }
     .logo-box {
       width: 46px;
       height: 46px;
       border-radius: 10px;
       border: 1px solid #d8e1ec;
-      background: #ffffff;
+      background: linear-gradient(135deg, #1fa85b, #157c43);
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
       display: grid;
       place-items: center;
-      overflow: hidden;
-      flex: 0 0 auto;
     }
-    .logo-box img {
-      max-width: 84%;
-      max-height: 84%;
-      object-fit: contain;
-      display: block;
-    }
-    .logo-fallback {
-      font-size: 0.64rem;
-      letter-spacing: 0.08em;
-      font-weight: 800;
-      color: #1f4f8b;
-      text-transform: uppercase;
-    }
-    .btn.back {
-      min-width: 42px;
-      width: 42px;
-      height: 42px;
-      padding: 0;
-      font-size: 1.2rem;
-      font-weight: 800;
-      line-height: 1;
-      border-radius: 10px;
-      flex: 0 0 auto;
-    }
-    .title { margin: 0; font-size: 1.02rem; font-weight: 750; }
-    .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.76rem; }
-    .view {
-      display: none;
-      flex: 1;
-      overflow: auto;
-      padding: 14px;
-    }
-    .view.active { display: block; }
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    .panel h2 {
-      margin: 0 0 10px;
-      font-size: 0.88rem;
-      color: #19314e;
-    }
-    .menu-brand {
-      text-align: center;
-      padding: 18px 12px;
-    }
-    .menu-logo {
-      width: min(220px, 86%);
-      margin: 0 auto 10px;
-      border-radius: 18px;
-      padding: 16px 10px;
-      background: linear-gradient(135deg, #1fa85b, #157c43);
-      color: #fff;
-      box-shadow: 0 10px 20px rgba(13, 75, 40, 0.25);
-    }
-    .menu-logo .main {
-      display: block;
-      font-size: 2rem;
-      line-height: 1;
-      letter-spacing: 0.1em;
-      font-weight: 900;
-    }
-    .menu-logo .sub {
-      display: block;
-      margin-top: 6px;
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      font-weight: 800;
-      color: #e9fff2;
-    }
-    .menu-brand .asi {
-      font-size: 0.9rem;
-      font-weight: 800;
-      color: #0f5b33;
-      letter-spacing: 0.04em;
-    }
-    .qsw-logo {
-      border-color: #bde5ce;
-      background: linear-gradient(135deg, #1fa85b, #157c43);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1px;
-    }
-    .qsw-logo .main {
-      font-size: 0.9rem;
-      line-height: 1;
-      letter-spacing: 0.08em;
-      font-weight: 900;
-    }
-    .qsw-logo .sub {
-      font-size: 0.46rem;
-      line-height: 1;
-      letter-spacing: 0.08em;
-      font-weight: 800;
-      color: #e9fff2;
-      margin: 0;
-    }
-    .btn {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 0.92rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    .btn:active { transform: translateY(1px); }
+    .view { flex: 1; overflow: auto; padding: 14px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 12px; }
+    .panel h2 { margin: 0 0 10px; font-size: 0.88rem; color: #19314e; }
+    .btn { border: 0; border-radius: 12px; padding: 12px 14px; font-size: 0.92rem; font-weight: 700; cursor: pointer; }
     .btn.primary { color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
     .btn.secondary { color: #15324f; background: #e8eef7; }
     .btn.danger { color: #8c1c1c; background: #ffe9e9; }
     .btn.block { width: 100%; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .grid { display: grid; gap: 9px; }
     .cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .date-time-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-    label {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 0.75rem;
-      color: #3d536f;
-      font-weight: 650;
-    }
+    .menu-buttons { display: grid; gap: 10px; margin-top: 8px; }
+    label { display: block; margin-bottom: 4px; font-size: 0.75rem; color: #3d536f; font-weight: 650; }
     input, select, textarea {
       width: 100%;
-      min-width: 0;
       border: 1px solid #cdd8e5;
       border-radius: 10px;
       padding: 9px 10px;
@@ -236,22 +113,21 @@
       background: #fff;
       font-size: 0.9rem;
     }
-    input[type="date"], input[type="time"] {
-      appearance: none;
-      -webkit-appearance: none;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    .required-field {
-      background: #fff8bf;
-      border-color: #dccb67;
-    }
-    .required-field:focus {
-      outline: 2px solid #e6d676;
-      outline-offset: 1px;
-    }
     textarea { min-height: 80px; resize: vertical; }
-    .menu-buttons { display: grid; gap: 10px; margin-top: 8px; }
+    .required-field { background: #fff8bf; border-color: #dccb67; }
+    .inline { display: flex; gap: 8px; }
+    .inline .btn { flex: 1; }
+    .inline.tight .btn { flex: 0 0 auto; }
+    .inline.tight input { flex: 1 1 auto; }
+    .images { margin-top: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .img-item { border: 1px solid var(--line); border-radius: 10px; background: #f6f9fd; overflow: hidden; position: relative; min-height: 84px; }
+    .img-item img { width: 100%; height: 84px; object-fit: cover; display: block; }
+    .img-item button {
+      position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
+      border: 0; border-radius: 50%; color: #fff; background: rgba(200, 40, 40, 0.95); cursor: pointer;
+    }
+    .obs { border: 1px solid var(--line); border-radius: 10px; background: #f9fcff; padding: 9px; margin-bottom: 8px; }
+    .obs-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.79rem; font-weight: 700; color: #3e5672; }
     .cards { display: grid; gap: 10px; }
     .card {
       background: #fff;
@@ -262,94 +138,13 @@
       cursor: pointer;
     }
     .card[data-sev="Critica"] { border-left-color: var(--danger); }
-    .card.selected {
-      border-color: #1a7f49;
-      box-shadow: 0 0 0 2px rgba(26, 127, 73, 0.2);
-    }
+    .card.selected { border-color: #1a7f49; box-shadow: 0 0 0 2px rgba(26, 127, 73, 0.2); }
     .card h3 { margin: 0 0 7px; font-size: 0.94rem; }
     .meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
-    .badge {
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      border: 1px solid transparent;
-    }
+    .badge { border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; border: 1px solid transparent; }
     .stato-Bozza { background: #f1f2f4; color: #47515e; border-color: #dce0e5; }
     .stato-Aperta { background: #e8f0fe; color: #0a4ea6; border-color: #c7dafb; }
     .stato-Inviata { background: #e7f8ee; color: #197e43; border-color: #c6edd6; }
-    .inline { display: flex; gap: 8px; }
-    .inline .btn { flex: 1; }
-    .inline.tight .btn { flex: 0 0 auto; }
-    .inline.tight input { flex: 1 1 auto; }
-    .images {
-      margin-top: 8px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-    .img-item {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #f6f9fd;
-      overflow: hidden;
-      position: relative;
-      min-height: 84px;
-    }
-    .img-item img { width: 100%; height: 84px; object-fit: cover; display: block; }
-    .img-item button {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 22px;
-      height: 22px;
-      border: 0;
-      border-radius: 50%;
-      color: #fff;
-      background: rgba(200, 40, 40, 0.95);
-      cursor: pointer;
-    }
-    .obs {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #f9fcff;
-      padding: 9px;
-      margin-bottom: 8px;
-    }
-    .obs-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 0.79rem;
-      font-weight: 700;
-      color: #3e5672;
-    }
-    .alert {
-      display: none;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 0.82rem;
-    }
-    .alert.error { display: block; background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
-    .alert.ok { display: block; background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
-    .toast {
-      position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      z-index: 9;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 0.84rem;
-      font-weight: 700;
-      display: none;
-      box-shadow: 0 8px 18px rgba(16, 28, 42, 0.28);
-    }
-    .toast.show { display: block; }
-    .toast.ok { background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
-    .toast.error { background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
     .footer-actions {
       position: sticky;
       bottom: 0;
@@ -358,321 +153,58 @@
       background: linear-gradient(180deg, rgba(236, 243, 250, 0) 0%, rgba(236, 243, 250, 1) 30%);
       padding: 8px 0 2px;
     }
-    .json {
-      margin: 0;
-      max-height: 160px;
-      overflow: auto;
-      border-radius: 10px;
-      background: #0f1a2d;
-      color: #d7e6fd;
-      padding: 9px;
-      font-size: 0.75rem;
-    }
-    .empty {
-      padding: 14px;
-      border: 1px dashed #cad7e5;
-      border-radius: 12px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 0.85rem;
-    }
+    .alert { margin-bottom: 10px; border-radius: 10px; padding: 8px 10px; font-size: 0.82rem; }
+    .alert.error { background: #ffe9e9; color: #952020; border: 1px solid #f0c6c6; }
+    .alert.ok { background: #e6f7ed; color: #187840; border: 1px solid #c3ebd4; }
+    .empty { padding: 14px; border: 1px dashed #cad7e5; border-radius: 12px; color: var(--muted); text-align: center; font-size: 0.85rem; }
     @media (max-width: 460px) {
       body { padding: 0; }
       .phone { width: 100vw; height: 100vh; border: 0; border-radius: 0; max-width: none; }
       .notch { display: none; }
       .header { padding-top: 16px; }
-      .cols-2 { grid-template-columns: 1fr; }
-      .date-time-row { grid-template-columns: 1fr; }
+      .cols-2, .date-time-row { grid-template-columns: 1fr; }
       input, select, textarea { font-size: 16px; }
-    }
-    @supports (-webkit-touch-callout: none) {
-      .date-time-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="phone">
     <div class="notch"></div>
-    <div class="app">
-      <header class="header">
-        <button class="btn secondary back" id="btnIndietro" style="display:none;" aria-label="Indietro" title="Indietro">‹</button>
-        <div class="header-center">
-          <h1 class="title" id="titoloHeader">Menu</h1>
-          <p class="sub" id="sottoHeader">Demo mobile non conformita installazioni foro finestra</p>
-        </div>
-        <div class="logo-box">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/ALPAC_logo.svg/320px-ALPAC_logo.svg.png" alt="Logo ALPAC" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-          <span class="logo-fallback" style="display:none;">ALPAC</span>
-        </div>
-      </header>
-
-      <main class="view active" id="viewMenu">
-        <section class="panel menu-brand">
-          <div class="menu-logo" aria-label="QSW Track logo">
-            <span class="main">QSW</span>
-            <span class="sub">TRACK REFERENCE</span>
-          </div>
-          <div class="asi">Riferimento tracking non conformita</div>
-        </section>
-        <section class="panel">
-          <h2>Seleziona azione</h2>
-          <div class="menu-buttons">
-            <button class="btn primary block" id="vaiCrea">Crea NC</button>
-            <button class="btn secondary block" id="vaiVisualizza">Visualizza</button>
-          </div>
-        </section>
-        <section class="panel">
-          <h2>Archivio JSON</h2>
-          <div class="menu-buttons">
-            <button class="btn secondary block" id="btnApriArchivio">Apri archivio JSON</button>
-            <button class="btn secondary block" id="btnNuovoArchivio">Crea / collega archivio JSON</button>
-          </div>
-          <input id="inputArchivio" type="file" accept="application/json,.json" hidden>
-          <div id="statoArchivio" style="font-size:0.8rem;color:#4f6278;margin-top:8px;">Archivio fisso: ./nc-archivio.json</div>
-        </section>
-        <section class="panel">
-          <h2>Note demo</h2>
-          <div style="font-size:0.84rem;color:#5d6f85;line-height:1.4;">
-            Flusso dedicato alla raccolta problematiche su installazioni di prodotti ALPAC per la gestione del foro finestra. I dati vengono salvati su file JSON collegato oppure in cache locale browser; l'export JSON resta disponibile dal pulsante dedicato.
-          </div>
-        </section>
-      </main>
-
-      <main class="view" id="viewCrea">
-        <div class="alert" id="alertForm"></div>
-
-        <section class="panel">
-          <h2>Dati non conformita installazione</h2>
-          <div class="grid">
-            <div>
-              <label for="titolo">Problema riscontrato *</label>
-              <input id="titolo" placeholder="Es. Infiltrazione sul nodo inferiore">
-            </div>
-            <div>
-              <label for="descrizione">Descrizione tecnica problema *</label>
-              <textarea id="descrizione" placeholder="Descrivi sintomi, condizioni e difetto rilevato"></textarea>
-            </div>
-          </div>
-          <div class="grid cols-2" style="margin-top:8px;">
-            <div>
-              <label for="categoria">Famiglia prodotto ALPAC *</label>
-              <select id="categoria">
-                <option value="">Seleziona</option>
-                <option>Sistemi posa</option>
-                <option>Monoblocco</option>
-                <option>Controtelaio</option>
-                <option>Cassonetto</option>
-                <option>Altro</option>
-              </select>
-            </div>
-            <div>
-              <label for="gravita">Severita *</label>
-              <select id="gravita">
-                <option value="">Seleziona</option>
-                <option>Bassa</option>
-                <option>Media</option>
-                <option>Alta</option>
-                <option>Critica</option>
-              </select>
-            </div>
-            <div>
-              <label for="reparto">Cantiere / Cliente *</label>
-              <input id="reparto" placeholder="Es. Cantiere Milano Nord">
-            </div>
-            <div>
-              <label for="luogo">Posizione geografica (indirizzo) *</label>
-              <div class="inline tight">
-                <input id="luogo" placeholder="Via, citta, provincia">
-                <button class="btn secondary" id="btnIndirizzo" type="button">Carica via/citta</button>
-              </div>
-            </div>
-            <div>
-              <label for="operatore">Operatore / Segnalatore *</label>
-              <input id="operatore" placeholder="Nome e cognome">
-            </div>
-            <div>
-              <label for="stato">Stato pratica</label>
-              <select id="stato">
-                <option>Bozza</option>
-                <option>Aperta</option>
-                <option>Inviata</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid date-time-row" style="margin-top:8px;">
-            <div>
-              <label for="dataNc">Data *</label>
-              <input id="dataNc" type="date">
-            </div>
-            <div>
-              <label for="oraNc">Ora *</label>
-              <input id="oraNc" type="time">
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <label for="riferimento">Numero ordine / commessa *</label>
-            <input id="riferimento" placeholder="Es. ORD-2026-0458">
-          </div>
-          <div style="margin-top:8px;">
-            <label for="gpsCoord">Coordinate GPS</label>
-            <div class="inline">
-              <input id="gpsCoord" placeholder="Latitudine, Longitudine" readonly>
-              <button class="btn secondary" id="btnGps" type="button">Usa posizione attuale</button>
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <label for="note">Note aggiuntive</label>
-            <textarea id="note" placeholder="Dettagli extra"></textarea>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h2>Foto del problema</h2>
-          <div class="inline">
-            <button class="btn secondary" id="btnFoto" type="button">Scatta foto</button>
-            <button class="btn secondary" id="btnUpload" type="button">Carica immagine</button>
-          </div>
-          <input id="inputFoto" type="file" accept="image/*" capture="environment" hidden>
-          <input id="inputUpload" type="file" accept="image/*" multiple hidden>
-          <div id="grigliaImg" class="images"></div>
-        </section>
-
-        <section class="panel">
-          <h2>Osservazioni aggiuntive</h2>
-          <div id="listaObs"></div>
-          <button class="btn secondary block" id="aggiungiObs" type="button">+ Aggiungi riga</button>
-        </section>
-
-        <section class="panel" hidden>
-          <h2>Anteprima JSON</h2>
-          <pre id="anteprimaJson" class="json">{}</pre>
-        </section>
-
-        <div class="footer-actions">
-          <button class="btn primary block" id="btnSalva">Salva</button>
-          <button class="btn danger block" id="btnSubmit">Submit</button>
-        </div>
-      </main>
-
-      <main class="view" id="viewVisualizza">
-        <section class="panel">
-          <h2>NC create e salvate</h2>
-          <div id="listaNc" class="cards"></div>
-          <div class="inline" style="margin-top:10px;">
-            <button class="btn secondary" id="btnApriSelezionata" disabled>Apri selezionata</button>
-          </div>
-        </section>
-        <section class="panel">
-          <button class="btn secondary block" id="btnEsportaJson">Esporta JSON</button>
-        </section>
-      </main>
-      <div class="toast" id="toastNotifica"></div>
-    </div>
+    <div id="root" class="app"></div>
   </div>
 
-  <script>
-    const APP_VERSION = "v2026.03.13.3";
-    const viste = {
-      menu: document.getElementById("viewMenu"),
-      crea: document.getElementById("viewCrea"),
-      visualizza: document.getElementById("viewVisualizza")
-    };
-    const titoloHeader = document.getElementById("titoloHeader");
-    const sottoHeader = document.getElementById("sottoHeader");
-    const btnIndietro = document.getElementById("btnIndietro");
-    const alertForm = document.getElementById("alertForm");
-    const anteprimaJson = document.getElementById("anteprimaJson");
-    const listaNc = document.getElementById("listaNc");
-    const listaObs = document.getElementById("listaObs");
-    const grigliaImg = document.getElementById("grigliaImg");
-    const gpsCoord = document.getElementById("gpsCoord");
-    const toastNotifica = document.getElementById("toastNotifica");
-    const statoArchivio = document.getElementById("statoArchivio");
-    const inputArchivio = document.getElementById("inputArchivio");
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    const campi = ["titolo","descrizione","categoria","gravita","reparto","luogo","operatore","stato","dataNc","oraNc","riferimento","note"];
-    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","operatore","dataNc","oraNc","riferimento"];
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+
+    const APP_VERSION = "v2026.03.13.4-react";
+    const STORAGE_KEY = "qda_qsw_archivio_v1";
     const archivioFissoPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
-    const STORAGE_KEY = "qda_qsw_archivio_v1";
+    const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","operatore","dataNc","oraNc","riferimento"];
 
-    let archivio = caricaArchivio();
-    let bozza = null;
-    let timerToast = null;
-    let fileHandle = null;
-    let nomeArchivio = archivioFissoNome;
-    let ncSelezionataId = null;
+    const oraAttuale = () => new Date().toTimeString().slice(0, 5);
+    const dataAttuale = () => new Date().toISOString().slice(0, 10);
 
-    function setSottoHeader(testo) {
-      sottoHeader.textContent = testo + " • " + APP_VERSION;
+    function modelloVuoto(nextId) {
+      return { id: nextId, titolo: "", descrizione: "", categoria: "", gravita: "", reparto: "", luogo: "", operatore: "", stato: "Bozza", dataNc: dataAttuale(), oraNc: oraAttuale(), riferimento: "", note: "", gpsCoord: "", osservazioni: [], immagini: [] };
     }
-
-    function oraAttuale() { return new Date().toTimeString().slice(0, 5); }
-    function dataAttuale() { return new Date().toISOString().slice(0, 10); }
-    function listaArchivio() {
-      return Object.values(archivio || {});
-    }
-    function prossimoId() {
-      return listaArchivio().reduce((max, nc) => Math.max(max, Number(nc.id) || 0), 0) + 1;
-    }
-
-    function modelloVuoto() {
-      return {
-        id: prossimoId(),
-        titolo: "",
-        descrizione: "",
-        categoria: "",
-        gravita: "",
-        reparto: "",
-        luogo: "",
-        operatore: "",
-        stato: "Bozza",
-        dataNc: dataAttuale(),
-        oraNc: oraAttuale(),
-        riferimento: "",
-        note: "",
-        gpsCoord: "",
-        osservazioni: [],
-        immagini: []
-      };
-    }
-
     function normalizzaNc(nc) {
-      const base = {
-        id: null,
-        titolo: "",
-        descrizione: "",
-        categoria: "",
-        gravita: "",
-        reparto: "",
-        luogo: "",
-        operatore: "",
-        stato: "Bozza",
-        dataNc: dataAttuale(),
-        oraNc: oraAttuale(),
-        riferimento: "",
-        note: "",
-        gpsCoord: "",
-        osservazioni: [],
-        immagini: []
-      };
-      const out = Object.assign(base, nc || {});
+      const out = Object.assign(modelloVuoto(null), nc || {});
       out.id = Number(out.id) || null;
-      if (!Array.isArray(out.osservazioni)) {
-        out.osservazioni = Array.isArray(nc && nc.observations) ? nc.observations : [];
-      }
-      if (!Array.isArray(out.immagini)) {
-        out.immagini = Array.isArray(nc && nc.images) ? nc.images : [];
-      }
-      if (typeof out.gpsCoord !== "string") out.gpsCoord = "";
+      out.osservazioni = Array.isArray(out.osservazioni) ? out.osservazioni : [];
+      out.immagini = Array.isArray(out.immagini) ? out.immagini : [];
+      out.gpsCoord = typeof out.gpsCoord === "string" ? out.gpsCoord : "";
       return out;
     }
-
     function normalizzaArchivio(parsed) {
       if (!parsed) return {};
       const out = {};
       const prossimoIdLocale = () => {
-        const keys = Object.keys(out).map(k => Number(k)).filter(n => Number.isFinite(n));
+        const keys = Object.keys(out).map(k => Number(k)).filter(Number.isFinite);
         return (keys.length ? Math.max(...keys) : 0) + 1;
       };
       if (Array.isArray(parsed)) {
@@ -696,522 +228,340 @@
       }
       return out;
     }
-    function serializzaArchivio() {
-      const ordinato = {};
-      Object.keys(archivio || {})
-        .sort((a, b) => Number(a) - Number(b))
-        .forEach(k => { ordinato[k] = archivio[k]; });
-      return JSON.stringify(ordinato, null, 2);
+    function serializzaArchivio(archivio) {
+      const ordered = {};
+      Object.keys(archivio || {}).sort((a, b) => Number(a) - Number(b)).forEach(k => { ordered[k] = archivio[k]; });
+      return JSON.stringify(ordered, null, 2);
     }
-    function caricaArchivio() {
-      try {
-        const testo = localStorage.getItem(STORAGE_KEY);
-        if (!testo) return {};
-        const parsed = JSON.parse(testo);
-        return normalizzaArchivio(parsed);
-      } catch {
-        return {};
-      }
+    function prossimoId(archivio) {
+      return Object.values(archivio || {}).reduce((max, x) => Math.max(max, Number(x.id) || 0), 0) + 1;
     }
-    function aggiornaStatoArchivio() {
-      if (!statoArchivio) return;
-      statoArchivio.textContent = "Archivio fisso: " + archivioFissoPath;
+    function validaBozza(bozza) {
+      return obbligatori.filter(c => !String(bozza[c] || "").trim());
     }
-    function scaricaTesto(nomeFile, testo) {
-      const blob = new Blob([testo], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = nomeFile || "nc-archivio.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-    function salvaArchivioLocale(json) {
-      try {
-        localStorage.setItem(STORAGE_KEY, json);
-      } catch {
-        // Ignore quota/private-mode errors and keep app usable.
-      }
-    }
-    async function salvaArchivio() {
-      const json = serializzaArchivio();
-      salvaArchivioLocale(json);
-      if (fileHandle && window.showSaveFilePicker) {
-        const writable = await fileHandle.createWritable();
-        await writable.write(json);
-        await writable.close();
-      }
-    }
-    function caricaArchivioDaTesto(testo) {
-      const parsed = JSON.parse(testo);
-      archivio = normalizzaArchivio(parsed);
-      salvaArchivioLocale(serializzaArchivio());
-      renderListaNc();
-    }
-    async function caricaArchivioFisso() {
-      nomeArchivio = archivioFissoNome;
-      try {
-        const resp = await fetch(archivioFissoPath + "?t=" + Date.now(), { cache: "no-store" });
-        if (!resp.ok) throw new Error("HTTP " + resp.status);
-        const testo = await resp.text();
-        caricaArchivioDaTesto((testo || "").trim() ? testo : "{}");
-      } catch {
-        // Keep the local cache loaded by caricaArchivio() when fixed file is not reachable.
-        renderListaNc();
-      }
-      aggiornaStatoArchivio();
-    }
-    async function apriArchivioDaPicker() {
-      if (window.showOpenFilePicker) {
-        const [handle] = await window.showOpenFilePicker({
-          multiple: false,
-          types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
-        });
-        if (!handle) return;
-        fileHandle = handle;
-        if ((handle.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) {
-          mostraAlert("error", "Seleziona il file " + archivioFissoNome + ".");
-          return;
+
+    function App() {
+      const inputArchivioRef = useRef(null);
+      const inputFotoRef = useRef(null);
+      const inputUploadRef = useRef(null);
+      const fileHandleRef = useRef(null);
+
+      const [vista, setVista] = useState("menu");
+      const [archivio, setArchivio] = useState(() => {
+        try {
+          const testo = localStorage.getItem(STORAGE_KEY);
+          return testo ? normalizzaArchivio(JSON.parse(testo)) : {};
+        } catch {
+          return {};
         }
-        nomeArchivio = archivioFissoNome;
-        const file = await handle.getFile();
-        const testo = await file.text();
-        caricaArchivioDaTesto(testo || "{}");
-        aggiornaStatoArchivio();
-        mostraAlert("ok", "Archivio JSON caricato.");
-        return;
-      }
-      inputArchivio.click();
-    }
-    async function creaOCollegaArchivio() {
-      if (window.showSaveFilePicker) {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: nomeArchivio || "nc-archivio.json",
-          types: [{ description: "JSON", accept: { "application/json": [".json"] } }]
-        });
-        if (!handle) return;
-        fileHandle = handle;
-        if ((handle.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) {
-          mostraAlert("error", "Usa il nome file " + archivioFissoNome + ".");
-          return;
-        }
-        nomeArchivio = archivioFissoNome;
-        await salvaArchivio();
-        aggiornaStatoArchivio();
-        mostraAlert("ok", "Archivio JSON collegato.");
-        return;
-      }
-      nomeArchivio = nomeArchivio || "nc-archivio.json";
-      await salvaArchivio();
-      aggiornaStatoArchivio();
-      mostraAlert("ok", "Archivio locale pronto. Usa 'Esporta JSON' se vuoi scaricare un file.");
-    }
+      });
+      const [bozza, setBozza] = useState(() => modelloVuoto(1));
+      const [ncSelezionataId, setNcSelezionataId] = useState(null);
+      const [nomeArchivio, setNomeArchivio] = useState(archivioFissoNome);
+      const [alert, setAlert] = useState({ tipo: "", msg: "" });
 
-    function mostraVista(nome) {
-      Object.values(viste).forEach(v => v.classList.remove("active"));
-      viste[nome].classList.add("active");
-      if (nome === "menu") {
-        titoloHeader.textContent = "Menu";
-        setSottoHeader("Demo mobile non conformita installazioni foro finestra");
-        btnIndietro.style.display = "none";
-      }
-      if (nome === "crea") {
-        titoloHeader.textContent = "Crea NC";
-        setSottoHeader("Raccogli problema, foto, operatore, ordini e posizione");
-        btnIndietro.style.display = "inline-block";
-      }
-      if (nome === "visualizza") {
-        titoloHeader.textContent = "Visualizza NC";
-        setSottoHeader("Elenco NC salvate");
-        btnIndietro.style.display = "inline-block";
-        renderListaNc();
-      }
-    }
+      const elencoNc = useMemo(() => Object.values(archivio).sort((a, b) => b.id - a.id), [archivio]);
 
-    function apriCrea() {
-      bozza = normalizzaNc(modelloVuoto());
-      if (!Array.isArray(bozza.osservazioni)) bozza.osservazioni = [];
-      if (!Array.isArray(bozza.immagini)) bozza.immagini = [];
-      renderForm();
-      renderOsservazioni();
-      renderImmagini();
-      aggiornaAnteprima();
-      mostraVista("crea");
-    }
-
-    function renderForm() {
-      campi.forEach(c => {
-        const el = document.getElementById(c);
-        el.value = bozza[c] || "";
-        el.oninput = () => {
-          bozza[c] = el.value;
-          aggiornaAnteprima();
+      useEffect(() => {
+        const caricaArchivioFisso = async () => {
+          try {
+            const resp = await fetch(archivioFissoPath + "?t=" + Date.now(), { cache: "no-store" });
+            if (!resp.ok) throw new Error("HTTP " + resp.status);
+            const testo = await resp.text();
+            const loaded = normalizzaArchivio(JSON.parse((testo || "{}").trim() || "{}"));
+            setArchivio(loaded);
+          } catch {}
         };
-      });
-      obbligatori.forEach(c => {
-        const el = document.getElementById(c);
-        if (!el) return;
-        el.classList.add("required-field");
-        el.setAttribute("required", "required");
-      });
-      gpsCoord.value = bozza.gpsCoord || "";
-      nascondiAlert();
-    }
+        caricaArchivioFisso();
+      }, []);
 
-    function renderListaNc() {
-      const btnApriSel = document.getElementById("btnApriSelezionata");
-      const aggiornaAzioniSelezione = () => {
-        const disabilita = ncSelezionataId == null || !archivio[String(ncSelezionataId)];
-        btnApriSel.disabled = disabilita;
+      const salvaArchivio = async (nextArchivio) => {
+        const json = serializzaArchivio(nextArchivio);
+        try { localStorage.setItem(STORAGE_KEY, json); } catch {}
+        if (fileHandleRef.current && window.showSaveFilePicker) {
+          const writable = await fileHandleRef.current.createWritable();
+          await writable.write(json);
+          await writable.close();
+        }
       };
-      const elenco = listaArchivio();
-      if (!elenco.length) {
-        ncSelezionataId = null;
-        aggiornaAzioniSelezione();
-        listaNc.innerHTML = `<div class="empty">Nessuna NC salvata.</div>`;
-        return;
-      }
-      if (!archivio[String(ncSelezionataId)]) ncSelezionataId = null;
-      const ordinato = [...elenco].sort((a, b) => b.id - a.id);
-      listaNc.innerHTML = ordinato.map(nc => `
-        <article class="card ${nc.id === ncSelezionataId ? "selected" : ""}" data-id="${nc.id}" data-sev="${escapeHtml(nc.gravita || "")}">
-          <h3>#NC-${String(nc.id).padStart(4, "0")} - ${escapeHtml(nc.titolo || "Senza titolo")}</h3>
-          <div class="meta">
-            <span class="badge stato-${escapeHtml(nc.stato || "Bozza")}">${escapeHtml(nc.stato || "Bozza")}</span>
-            <span>${escapeHtml(nc.categoria || "-")}</span>
-            <span>${escapeHtml(nc.gravita || "-")}</span>
-          </div>
-          <div class="meta" style="margin-top:6px;">
-            <span>${escapeHtml((nc.dataNc || "-") + " " + (nc.oraNc || ""))}</span>
-            <span>${escapeHtml(nc.reparto || "-")}</span>
-          </div>
-        </article>
-      `).join("");
 
-      listaNc.querySelectorAll(".card").forEach(card => {
-        card.addEventListener("click", () => {
-          ncSelezionataId = Number(card.dataset.id);
-          renderListaNc();
-        });
-      });
-      aggiornaAzioniSelezione();
-    }
-    function apriNcSelezionata() {
-      if (ncSelezionataId == null) {
-        mostraToast("error", "Seleziona una NC.");
-        return;
-      }
-      const trovato = archivio[String(ncSelezionataId)];
-      if (!trovato) {
-        mostraToast("error", "NC selezionata non trovata.");
-        return;
-      }
-      bozza = normalizzaNc(JSON.parse(JSON.stringify(trovato)));
-      renderForm();
-      renderOsservazioni();
-      renderImmagini();
-      aggiornaAnteprima();
-      mostraVista("crea");
-    }
-    function renderOsservazioni() {
-      bozza = normalizzaNc(bozza || {});
-      const osservazioni = Array.isArray(bozza.osservazioni) ? bozza.osservazioni : [];
-      bozza.osservazioni = osservazioni;
-      if (!osservazioni.length) {
-        listaObs.innerHTML = `<div class="empty" style="padding:10px;">Nessuna osservazione.</div>`;
-        return;
-      }
-      listaObs.innerHTML = osservazioni.map((o, i) => `
-        <div class="obs">
-          <div class="obs-head">
-            <span>Osservazione ${i + 1}</span>
-            <button class="btn danger" type="button" data-del-obs="${i}">Elimina</button>
-          </div>
-          <div class="grid cols-2">
-            <div>
-              <label>Tipo</label>
-              <input data-obs-idx="${i}" data-obs-key="tipo" value="${escapeAttr(o.tipo || "")}">
-            </div>
-            <div>
-              <label>Valore / Codice</label>
-              <input data-obs-idx="${i}" data-obs-key="valore" value="${escapeAttr(o.valore || "")}">
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <label>Descrizione</label>
-            <input data-obs-idx="${i}" data-obs-key="descrizione" value="${escapeAttr(o.descrizione || "")}">
-          </div>
-          <div style="margin-top:8px;">
-            <label>Note</label>
-            <input data-obs-idx="${i}" data-obs-key="note" value="${escapeAttr(o.note || "")}">
-          </div>
-        </div>
-      `).join("");
+      const mostraAlert = (tipo, msg) => setAlert({ tipo, msg });
+      const apriCrea = () => { setBozza(modelloVuoto(prossimoId(archivio))); setAlert({ tipo: "", msg: "" }); setVista("crea"); };
 
-      listaObs.querySelectorAll("[data-obs-key]").forEach(inp => {
-        inp.addEventListener("input", e => {
-          const i = Number(e.target.dataset.obsIdx);
-          const key = e.target.dataset.obsKey;
-          bozza.observazioni[i][key] = e.target.value;
-          aggiornaAnteprima();
-        });
-      });
-      listaObs.querySelectorAll("[data-del-obs]").forEach(btn => {
-        btn.addEventListener("click", e => {
-          const i = Number(e.target.dataset.delObs);
-          bozza.observazioni.splice(i, 1);
-          renderOsservazioni();
-          aggiornaAnteprima();
-        });
-      });
-    }
+      const upsertBozza = async (ncAggiornata) => {
+        const id = Number(ncAggiornata.id) || prossimoId(archivio);
+        const chiave = String(id);
+        const nextArchivio = { ...archivio, [chiave]: { ...ncAggiornata, id } };
+        setArchivio(nextArchivio);
+        await salvaArchivio(nextArchivio);
+      };
 
-    function renderImmagini() {
-      bozza = normalizzaNc(bozza || {});
-      const immagini = Array.isArray(bozza.immagini) ? bozza.immagini : [];
-      bozza.immagini = immagini;
-      if (!immagini.length) {
-        grigliaImg.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:10px;">Nessuna immagine.</div>`;
-        return;
-      }
-      grigliaImg.innerHTML = immagini.map((img, i) => `
-        <div class="img-item">
-          <img src="${img.src}" alt="img-${i}">
-          <button type="button" data-del-img="${i}">Ã—</button>
-        </div>
-      `).join("");
+      const onSalva = async () => {
+        const mancanti = validaBozza(bozza);
+        if (mancanti.length) return mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
+        await upsertBozza({ ...bozza });
+        mostraAlert("ok", "NC salvata su archivio JSON.");
+      };
+      const onSubmit = async () => {
+        const mancanti = validaBozza(bozza);
+        if (mancanti.length) return mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
+        if (!confirm("Confermi il submit della NC?")) return;
+        const inviata = { ...bozza, stato: "Inviata" };
+        setBozza(inviata);
+        await upsertBozza(inviata);
+        mostraAlert("ok", "NC inviata e salvata su archivio JSON.");
+        setVista("menu");
+      };
 
-      grigliaImg.querySelectorAll("[data-del-img]").forEach(btn => {
-        btn.addEventListener("click", e => {
-          const i = Number(e.target.dataset.delImg);
-          bozza.immagini.splice(i, 1);
-          renderImmagini();
-          aggiornaAnteprima();
-        });
-      });
-    }
+      const apriArchivioDaPicker = async () => {
+        try {
+          if (window.showOpenFilePicker) {
+            const [handle] = await window.showOpenFilePicker({ multiple: false, types: [{ description: "JSON", accept: { "application/json": [".json"] } }] });
+            if (!handle) return;
+            if ((handle.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) return mostraAlert("error", "Seleziona il file " + archivioFissoNome + ".");
+            fileHandleRef.current = handle;
+            setNomeArchivio(archivioFissoNome);
+            const file = await handle.getFile();
+            const testo = await file.text();
+            const loaded = normalizzaArchivio(JSON.parse(testo || "{}"));
+            setArchivio(loaded);
+            await salvaArchivio(loaded);
+            mostraAlert("ok", "Archivio JSON caricato.");
+            return;
+          }
+          inputArchivioRef.current?.click();
+        } catch {
+          mostraAlert("error", "Impossibile aprire archivio JSON.");
+        }
+      };
 
-    function aggiornaAnteprima() {
-      if (!anteprimaJson) return;
-      anteprimaJson.textContent = JSON.stringify(bozza, null, 2);
-    }
+      const creaOCollegaArchivio = async () => {
+        try {
+          if (!window.showSaveFilePicker) return mostraAlert("error", "Browser non supporta il collegamento diretto file.");
+          const handle = await window.showSaveFilePicker({ suggestedName: archivioFissoNome, types: [{ description: "JSON", accept: { "application/json": [".json"] } }] });
+          if (!handle) return;
+          if ((handle.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) return mostraAlert("error", "Usa il nome file " + archivioFissoNome + ".");
+          fileHandleRef.current = handle;
+          setNomeArchivio(archivioFissoNome);
+          await salvaArchivio(archivio);
+          mostraAlert("ok", "Archivio JSON collegato.");
+        } catch {
+          mostraAlert("error", "Impossibile creare/collegare archivio JSON.");
+        }
+      };
 
-    function validaBozza() {
-      const mancanti = obbligatori.filter(c => !String(bozza[c] || "").trim());
-      if (mancanti.length) {
-        mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
-        return false;
-      }
-      return true;
-    }
+      const onImportFile = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          if ((file.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) return mostraAlert("error", "Importa il file " + archivioFissoNome + ".");
+          const testo = await file.text();
+          const loaded = normalizzaArchivio(JSON.parse(testo || "{}"));
+          setNomeArchivio(archivioFissoNome);
+          setArchivio(loaded);
+          await salvaArchivio(loaded);
+          mostraAlert("ok", "Archivio JSON importato.");
+        } catch {
+          mostraAlert("error", "File JSON non valido.");
+        } finally {
+          e.target.value = "";
+        }
+      };
 
-    async function upsertBozza() {
-      const chiave = String(Number(bozza.id) || prossimoId());
-      bozza.id = Number(chiave);
-      archivio[chiave] = JSON.parse(JSON.stringify(bozza));
-      await salvaArchivio();
-    }
+      const esportaJson = () => {
+        const blob = new Blob([serializzaArchivio(archivio)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nomeArchivio || archivioFissoNome;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
 
-    function mostraAlert(tipo, msg) {
-      alertForm.className = "alert " + (tipo === "ok" ? "ok" : "error");
-      alertForm.textContent = msg;
-      mostraToast(tipo, msg);
-    }
-    function nascondiAlert() {
-      alertForm.className = "alert";
-      alertForm.textContent = "";
-    }
-    function mostraToast(tipo, msg) {
-      if (!toastNotifica) return;
-      toastNotifica.className = "toast show " + (tipo === "ok" ? "ok" : "error");
-      toastNotifica.textContent = msg;
-      if (timerToast) clearTimeout(timerToast);
-      timerToast = setTimeout(() => {
-        toastNotifica.className = "toast";
-        toastNotifica.textContent = "";
-      }, 3600);
-    }
+      const aggiungiFile = async (fileList) => {
+        const files = Array.from(fileList || []).filter(f => String(f.type || "").startsWith("image/"));
+        const letti = await Promise.all(files.map(file => new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = ev => resolve({ id: "img_" + Date.now() + "_" + Math.random().toString(16).slice(2), nome: file.name || "immagine", src: ev.target.result });
+          reader.readAsDataURL(file);
+        })));
+        setBozza(prev => ({ ...prev, immagini: [...prev.immagini, ...letti] }));
+      };
 
-    async function submitNc() {
-      if (!validaBozza()) return;
-      if (!confirm("Confermi il submit della NC?")) return;
-      bozza.stato = "Inviata";
-      await upsertBozza();
-      renderForm();
-      aggiornaAnteprima();
-      mostraAlert("ok", "NC inviata e salvata su archivio JSON.");
-      renderListaNc();
-      mostraVista("menu");
-    }
-
-    async function salvaNc() {
-      if (!validaBozza()) return;
-      await upsertBozza();
-      mostraAlert("ok", "NC salvata su archivio JSON.");
-      renderListaNc();
-    }
-
-    function aggiungiFile(fileList) {
-      const files = Array.from(fileList || []);
-      files.forEach(file => {
-        if (!file.type.startsWith("image/")) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          bozza.immagini.push({
-            id: "img_" + Date.now() + "_" + Math.random().toString(16).slice(2),
-            nome: file.name || "immagine",
-            src: ev.target.result
+      const acquisisciPosizione = () => {
+        if (!("geolocation" in navigator)) return mostraAlert("error", "Geolocalizzazione non supportata su questo dispositivo.");
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const lat = pos.coords.latitude.toFixed(6);
+            const lon = pos.coords.longitude.toFixed(6);
+            setBozza(prev => ({ ...prev, gpsCoord: lat + ", " + lon }));
+            mostraAlert("ok", "Posizione GPS acquisita.");
+          },
+          () => mostraAlert("error", "Impossibile acquisire la posizione GPS."),
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      };
+      const acquisisciIndirizzo = async () => {
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            if (!("geolocation" in navigator)) return reject(new Error("No geo"));
+            navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
           });
-          renderImmagini();
-          aggiornaAnteprima();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function esportaJson() {
-      scaricaTesto(nomeArchivio || "nc-archivio.json", serializzaArchivio());
-    }
-    function acquisisciPosizione() {
-      if (!("geolocation" in navigator)) {
-        mostraAlert("error", "Geolocalizzazione non supportata su questo dispositivo.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        pos => {
           const lat = pos.coords.latitude.toFixed(6);
           const lon = pos.coords.longitude.toFixed(6);
-          bozza.gpsCoord = lat + ", " + lon;
-          gpsCoord.value = bozza.gpsCoord;
-          aggiornaAnteprima();
-          mostraAlert("ok", "Posizione GPS acquisita.");
-        },
-        () => mostraAlert("error", "Impossibile acquisire la posizione GPS."),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          let indirizzo = "";
+          try {
+            const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon + "&addressdetails=1";
+            const resp = await fetch(url, { headers: { "Accept": "application/json" } });
+            if (resp.ok) {
+              const data = await resp.json();
+              const a = data.address || {};
+              const via = a.road || a.pedestrian || a.footway || a.path || "";
+              const civico = a.house_number || "";
+              const citta = a.city || a.town || a.village || a.municipality || "";
+              const cap = a.postcode || "";
+              const provincia = a.county || a.state_district || "";
+              const regione = a.state || "";
+              const paese = a.country || "";
+              const viaCompleta = [via, civico].filter(Boolean).join(" ").trim();
+              indirizzo = [viaCompleta, citta, cap, provincia, regione, paese].filter(Boolean).join(", ");
+              if (!indirizzo && data.display_name) indirizzo = String(data.display_name);
+            }
+          } catch {}
+          setBozza(prev => ({ ...prev, gpsCoord: lat + ", " + lon, luogo: indirizzo || (lat + ", " + lon) }));
+          mostraAlert("ok", indirizzo ? "Indirizzo caricato da posizione." : "Posizione acquisita, indirizzo non disponibile.");
+        } catch {
+          mostraAlert("error", "Impossibile acquisire posizione/indirizzo.");
+        }
+      };
+
+      const sottotitolo = vista === "menu" ? "Demo mobile non conformita installazioni foro finestra" : (vista === "crea" ? "Raccogli problema, foto, operatore, ordini e posizione" : "Elenco NC salvate");
+      const statoClasse = s => ("badge stato-" + (s || "Bozza")).replace(/\\s+/g, "-");
+
+      return (
+        <>
+          <header className="header">
+            <button className="btn secondary back" style={{ display: vista === "menu" ? "none" : "inline-block" }} onClick={() => setVista("menu")} aria-label="Indietro" title="Indietro">{"<"}</button>
+            <div className="header-center">
+              <h1 className="title">{vista === "menu" ? "Menu" : vista === "crea" ? "Crea NC" : "Visualizza NC"}</h1>
+              <p className="sub">{sottotitolo + " • " + APP_VERSION}</p>
+            </div>
+            <div className="logo-box">QSW</div>
+          </header>
+
+          <main className="view">
+            {vista === "menu" && (
+              <>
+                <section className="panel">
+                  <h2>Seleziona azione</h2>
+                  <div className="menu-buttons">
+                    <button className="btn primary block" onClick={apriCrea}>Crea NC</button>
+                    <button className="btn secondary block" onClick={() => setVista("visualizza")}>Visualizza</button>
+                  </div>
+                </section>
+                <section className="panel">
+                  <h2>Archivio JSON</h2>
+                  <div className="menu-buttons">
+                    <button className="btn secondary block" onClick={apriArchivioDaPicker}>Apri archivio JSON</button>
+                    <button className="btn secondary block" onClick={creaOCollegaArchivio}>Crea / collega archivio JSON</button>
+                  </div>
+                  <input ref={inputArchivioRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px" }}>Archivio fisso: {archivioFissoPath}</div>
+                </section>
+              </>
+            )}
+
+            {vista === "crea" && (
+              <>
+                {alert.msg && <div className={"alert " + (alert.tipo === "ok" ? "ok" : "error")}>{alert.msg}</div>}
+                <section className="panel">
+                  <h2>Dati non conformita installazione</h2>
+                  <div className="grid">
+                    <div><label>Problema riscontrato *</label><input className="required-field" value={bozza.titolo} onChange={e => setBozza({ ...bozza, titolo: e.target.value })} /></div>
+                    <div><label>Descrizione tecnica problema *</label><textarea className="required-field" value={bozza.descrizione} onChange={e => setBozza({ ...bozza, descrizione: e.target.value })} /></div>
+                  </div>
+                  <div className="grid cols-2" style={{ marginTop: "8px" }}>
+                    <div><label>Famiglia prodotto ALPAC *</label><select className="required-field" value={bozza.categoria} onChange={e => setBozza({ ...bozza, categoria: e.target.value })}><option value="">Seleziona</option><option>Sistemi posa</option><option>Monoblocco</option><option>Controtelaio</option><option>Cassonetto</option><option>Altro</option></select></div>
+                    <div><label>Severita *</label><select className="required-field" value={bozza.gravita} onChange={e => setBozza({ ...bozza, gravita: e.target.value })}><option value="">Seleziona</option><option>Bassa</option><option>Media</option><option>Alta</option><option>Critica</option></select></div>
+                    <div><label>Cantiere / Cliente *</label><input className="required-field" value={bozza.reparto} onChange={e => setBozza({ ...bozza, reparto: e.target.value })} /></div>
+                    <div><label>Posizione geografica (indirizzo) *</label><div className="inline tight"><input value={bozza.luogo} onChange={e => setBozza({ ...bozza, luogo: e.target.value })} /><button className="btn secondary" type="button" onClick={acquisisciIndirizzo}>Carica via/citta</button></div></div>
+                    <div><label>Operatore / Segnalatore *</label><input className="required-field" value={bozza.operatore} onChange={e => setBozza({ ...bozza, operatore: e.target.value })} /></div>
+                    <div><label>Stato pratica</label><select value={bozza.stato} onChange={e => setBozza({ ...bozza, stato: e.target.value })}><option>Bozza</option><option>Aperta</option><option>Inviata</option></select></div>
+                  </div>
+                  <div className="grid date-time-row" style={{ marginTop: "8px" }}>
+                    <div><label>Data *</label><input className="required-field" type="date" value={bozza.dataNc} onChange={e => setBozza({ ...bozza, dataNc: e.target.value })} /></div>
+                    <div><label>Ora *</label><input className="required-field" type="time" value={bozza.oraNc} onChange={e => setBozza({ ...bozza, oraNc: e.target.value })} /></div>
+                  </div>
+                  <div style={{ marginTop: "8px" }}><label>Numero ordine / commessa *</label><input className="required-field" value={bozza.riferimento} onChange={e => setBozza({ ...bozza, riferimento: e.target.value })} /></div>
+                  <div style={{ marginTop: "8px" }}><label>Coordinate GPS</label><div className="inline"><input value={bozza.gpsCoord} readOnly /><button className="btn secondary" type="button" onClick={acquisisciPosizione}>Usa posizione attuale</button></div></div>
+                  <div style={{ marginTop: "8px" }}><label>Note aggiuntive</label><textarea value={bozza.note} onChange={e => setBozza({ ...bozza, note: e.target.value })} /></div>
+                </section>
+
+                <section className="panel">
+                  <h2>Foto del problema</h2>
+                  <div className="inline">
+                    <button className="btn secondary" type="button" onClick={() => inputFotoRef.current?.click()}>Scatta foto</button>
+                    <button className="btn secondary" type="button" onClick={() => inputUploadRef.current?.click()}>Carica immagine</button>
+                  </div>
+                  <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" hidden onChange={e => aggiungiFile(e.target.files)} />
+                  <input ref={inputUploadRef} type="file" accept="image/*" multiple hidden onChange={e => aggiungiFile(e.target.files)} />
+                  <div className="images">
+                    {!bozza.immagini.length && <div className="empty" style={{ gridColumn: "1/-1", padding: "10px" }}>Nessuna immagine.</div>}
+                    {bozza.immagini.map((img, i) => <div className="img-item" key={img.id || i}><img src={img.src} alt={"img-" + i} /><button type="button" onClick={() => setBozza(prev => ({ ...prev, immagini: prev.immagini.filter((_, idx) => idx !== i) }))}>x</button></div>)}
+                  </div>
+                </section>
+
+                <section className="panel">
+                  <h2>Osservazioni aggiuntive</h2>
+                  {!bozza.osservazioni.length && <div className="empty" style={{ padding: "10px" }}>Nessuna osservazione.</div>}
+                  {bozza.osservazioni.map((o, i) => (
+                    <div className="obs" key={i}>
+                      <div className="obs-head"><span>Osservazione {i + 1}</span><button className="btn danger" type="button" onClick={() => setBozza(prev => ({ ...prev, osservazioni: prev.osservazioni.filter((_, idx) => idx !== i) }))}>Elimina</button></div>
+                      <div className="grid cols-2">
+                        <div><label>Tipo</label><input value={o.tipo || ""} onChange={e => { const next = bozza.osservazioni.slice(); next[i] = { ...next[i], tipo: e.target.value }; setBozza({ ...bozza, osservazioni: next }); }} /></div>
+                        <div><label>Valore / Codice</label><input value={o.valore || ""} onChange={e => { const next = bozza.osservazioni.slice(); next[i] = { ...next[i], valore: e.target.value }; setBozza({ ...bozza, osservazioni: next }); }} /></div>
+                      </div>
+                      <div style={{ marginTop: "8px" }}><label>Descrizione</label><input value={o.descrizione || ""} onChange={e => { const next = bozza.osservazioni.slice(); next[i] = { ...next[i], descrizione: e.target.value }; setBozza({ ...bozza, osservazioni: next }); }} /></div>
+                      <div style={{ marginTop: "8px" }}><label>Note</label><input value={o.note || ""} onChange={e => { const next = bozza.osservazioni.slice(); next[i] = { ...next[i], note: e.target.value }; setBozza({ ...bozza, osservazioni: next }); }} /></div>
+                    </div>
+                  ))}
+                  <button className="btn secondary block" type="button" onClick={() => setBozza(prev => ({ ...prev, osservazioni: [...prev.osservazioni, { tipo: "", descrizione: "", note: "", valore: "" }] }))}>+ Aggiungi riga</button>
+                </section>
+
+                <div className="footer-actions">
+                  <button className="btn primary block" onClick={onSalva}>Salva</button>
+                  <button className="btn danger block" onClick={onSubmit}>Submit</button>
+                </div>
+              </>
+            )}
+
+            {vista === "visualizza" && (
+              <>
+                <section className="panel">
+                  <h2>NC create e salvate</h2>
+                  <div className="cards">
+                    {!elencoNc.length && <div className="empty">Nessuna NC salvata.</div>}
+                    {elencoNc.map(nc => (
+                      <article key={nc.id} className={"card " + (nc.id === ncSelezionataId ? "selected" : "")} data-sev={nc.gravita || ""} onClick={() => setNcSelezionataId(nc.id)}>
+                        <h3>#{"NC-" + String(nc.id).padStart(4, "0")} - {nc.titolo || "Senza titolo"}</h3>
+                        <div className="meta"><span className={statoClasse(nc.stato)}>{nc.stato || "Bozza"}</span><span>{nc.categoria || "-"}</span><span>{nc.gravita || "-"}</span></div>
+                        <div className="meta" style={{ marginTop: "6px" }}><span>{(nc.dataNc || "-") + " " + (nc.oraNc || "")}</span><span>{nc.reparto || "-"}</span></div>
+                      </article>
+                    ))}
+                  </div>
+                  <div className="inline" style={{ marginTop: "10px" }}>
+                    <button className="btn secondary" disabled={ncSelezionataId == null || !archivio[String(ncSelezionataId)]} onClick={() => { const trovato = archivio[String(ncSelezionataId)]; if (!trovato) return; setBozza({ ...normalizzaNc(trovato) }); setVista("crea"); }}>Apri selezionata</button>
+                  </div>
+                </section>
+                <section className="panel"><button className="btn secondary block" onClick={esportaJson}>Esporta JSON</button></section>
+              </>
+            )}
+          </main>
+        </>
       );
     }
-    function acquisisciPosizioneRaw() {
-      return new Promise((resolve, reject) => {
-        if (!("geolocation" in navigator)) {
-          reject(new Error("Geolocalizzazione non supportata."));
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          pos => resolve(pos),
-          err => reject(err),
-          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-        );
-      });
-    }
-    async function acquisisciIndirizzo() {
-      try {
-        const pos = await acquisisciPosizioneRaw();
-        const lat = pos.coords.latitude.toFixed(6);
-        const lon = pos.coords.longitude.toFixed(6);
-        bozza.gpsCoord = lat + ", " + lon;
-        gpsCoord.value = bozza.gpsCoord;
 
-        let indirizzo = "";
-        try {
-          const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon + "&addressdetails=1";
-          const resp = await fetch(url, { headers: { "Accept": "application/json" } });
-          if (resp.ok) {
-            const data = await resp.json();
-            const a = data.address || {};
-            const via = a.road || a.pedestrian || a.footway || a.path || "";
-            const civico = a.house_number || "";
-            const citta = a.city || a.town || a.village || a.municipality || "";
-            const cap = a.postcode || "";
-            const provincia = a.county || a.state_district || "";
-            const regione = a.state || "";
-            const paese = a.country || "";
-            const viaCompleta = [via, civico].filter(Boolean).join(" ").trim();
-            indirizzo = [viaCompleta, citta, cap, provincia, regione, paese].filter(Boolean).join(", ");
-            if (!indirizzo && data.display_name) indirizzo = String(data.display_name);
-          }
-        } catch {
-          indirizzo = "";
-        }
-
-        bozza.luogo = indirizzo || (lat + ", " + lon);
-        const luogoEl = document.getElementById("luogo");
-        if (luogoEl) luogoEl.value = bozza.luogo;
-        aggiornaAnteprima();
-        mostraAlert("ok", indirizzo ? "Indirizzo caricato da posizione." : "Posizione acquisita, indirizzo non disponibile.");
-      } catch {
-        mostraAlert("error", "Impossibile acquisire posizione/indirizzo.");
-      }
-    }
-
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, function(ch) {
-        if (ch === "&") return "&amp;";
-        if (ch === "<") return "&lt;";
-        if (ch === ">") return "&gt;";
-        if (ch === "\"") return "&quot;";
-        return "&#39;";
-      });
-    }
-    function escapeAttr(str) {
-      return escapeHtml(str).replace(/`/g, "&#96;");
-    }
-
-    document.getElementById("vaiCrea").addEventListener("click", apriCrea);
-    document.getElementById("vaiCrea").onclick = apriCrea;
-    document.getElementById("vaiVisualizza").addEventListener("click", () => mostraVista("visualizza"));
-    document.getElementById("vaiVisualizza").onclick = function() { mostraVista("visualizza"); };
-    btnIndietro.addEventListener("click", () => mostraVista("menu"));
-    document.getElementById("aggiungiObs").addEventListener("click", () => {
-      bozza.observazioni.push({ tipo: "", descrizione: "", note: "", valore: "" });
-      renderOsservazioni();
-      aggiornaAnteprima();
-    });
-    document.getElementById("btnSalva").addEventListener("click", salvaNc);
-    document.getElementById("btnSubmit").addEventListener("click", submitNc);
-    document.getElementById("btnFoto").addEventListener("click", () => document.getElementById("inputFoto").click());
-    document.getElementById("btnUpload").addEventListener("click", () => document.getElementById("inputUpload").click());
-    document.getElementById("inputFoto").addEventListener("change", e => aggiungiFile(e.target.files));
-    document.getElementById("inputUpload").addEventListener("change", e => aggiungiFile(e.target.files));
-    document.getElementById("btnEsportaJson").addEventListener("click", esportaJson);
-    document.getElementById("btnApriSelezionata").addEventListener("click", apriNcSelezionata);
-    document.getElementById("btnGps").addEventListener("click", acquisisciPosizione);
-    document.getElementById("btnIndirizzo").addEventListener("click", acquisisciIndirizzo);
-    document.getElementById("btnApriArchivio").addEventListener("click", async () => {
-      try {
-        await apriArchivioDaPicker();
-      } catch {
-        mostraAlert("error", "Impossibile aprire archivio JSON.");
-      }
-    });
-    document.getElementById("btnNuovoArchivio").addEventListener("click", async () => {
-      try {
-        await creaOCollegaArchivio();
-      } catch {
-        mostraAlert("error", "Impossibile creare/collegare archivio JSON.");
-      }
-    });
-    inputArchivio.addEventListener("change", async e => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      try {
-        const testo = await file.text();
-        if ((file.name || "").toLowerCase() !== archivioFissoNome.toLowerCase()) {
-          mostraAlert("error", "Importa il file " + archivioFissoNome + ".");
-          return;
-        }
-        nomeArchivio = archivioFissoNome;
-        caricaArchivioDaTesto(testo || "{}");
-        aggiornaStatoArchivio();
-        mostraAlert("ok", "Archivio JSON importato.");
-      } catch {
-        mostraAlert("error", "File JSON non valido.");
-      } finally {
-        e.target.value = "";
-      }
-    });
-
-    caricaArchivioFisso();
-    mostraVista("menu");
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
 </body>
 </html>
