@@ -44,6 +44,10 @@ jobs:
           mkdir -p site/nc-manager-react
           cp -R nc-manager-react/dist/. site/nc-manager-react/
           cp nc-archivio.json site/nc-archivio.json
+          cp non-conformities-demo.html site/non-conformities-demo.html
+          cp lettura-nc.html site/lettura-nc.html
+          cp apple-touch-icon.png site/apple-touch-icon.png
+          cp index.html site/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
