@@ -1,9 +1,8 @@
-const ARCHIVE_PATH_CANDIDATES = [
-  "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json",
-  "../nc-archivio.json",
-  "./nc-archivio.json",
-  `${import.meta.env.BASE_URL}data/nc-archivio.json`
-];
+const SHARED_ARCHIVE_ABS = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
+const IS_LOCAL_DEV = typeof window !== "undefined" && /^(localhost|127\\.0\\.0\\.1)$/.test(window.location.hostname);
+const ARCHIVE_PATH_CANDIDATES = IS_LOCAL_DEV
+  ? [SHARED_ARCHIVE_ABS, "./nc-archivio.json", `${import.meta.env.BASE_URL}data/nc-archivio.json`]
+  : ["/segnalazioni/nc-archivio.json", "../nc-archivio.json", SHARED_ARCHIVE_ABS, `${import.meta.env.BASE_URL}data/nc-archivio.json`];
 const STORAGE_KEY = "qda_qsw_nc_archive_v1";
 
 function stableStringify(value) {
@@ -46,6 +45,17 @@ function toObjectById(items) {
   return out;
 }
 
+function mergeArchives(remoteItems, localItems) {
+  const mergedById = toObjectById(remoteItems || []);
+  (localItems || []).forEach((item) => {
+    if (!item?.id) return;
+    mergedById[String(item.id)] = item;
+  });
+  return Object.keys(mergedById)
+    .sort((a, b) => Number(a) - Number(b))
+    .map((key) => mergedById[key]);
+}
+
 class NcArchiveService {
   constructor() {
     this.fileHandle = null;
@@ -71,7 +81,7 @@ class NcArchiveService {
       }
     }
 
-    throw lastError || new Error("Archivio JSON non trovato");
+    throw lastError || new Error(`Archivio JSON non trovato. Tentati: ${ARCHIVE_PATH_CANDIDATES.join(", ")}`);
   }
 
   readLocalArchive() {
@@ -91,13 +101,15 @@ class NcArchiveService {
   }
 
   async loadArchive() {
+    const local = this.readLocalArchive();
+
     try {
       const remote = await this.fetchArchiveFromStatic();
-      this.writeLocalArchive(remote);
-      this.lastHash = this.getHash(remote);
-      return { items: remote, source: "file" };
+      const merged = mergeArchives(remote, local);
+      this.writeLocalArchive(merged);
+      this.lastHash = this.getHash(merged);
+      return { items: merged, source: local.length ? "merged" : "file" };
     } catch {
-      const local = this.readLocalArchive();
       if (local.length) {
         this.lastHash = this.getHash(local);
         return { items: local, source: "local" };
@@ -108,9 +120,11 @@ class NcArchiveService {
 
   async reloadArchive() {
     const remote = await this.fetchArchiveFromStatic();
-    this.writeLocalArchive(remote);
-    this.lastHash = this.getHash(remote);
-    return remote;
+    const local = this.readLocalArchive();
+    const merged = mergeArchives(remote, local);
+    this.writeLocalArchive(merged);
+    this.lastHash = this.getHash(merged);
+    return merged;
   }
 
   async saveArchive(items) {
@@ -152,12 +166,13 @@ class NcArchiveService {
     this.pollTimer = window.setInterval(async () => {
       try {
         const latest = await this.fetchArchiveFromStatic();
-        const newHash = this.getHash(latest);
+        const prev = this.readLocalArchive();
+        const merged = mergeArchives(latest, prev);
+        const newHash = this.getHash(merged);
         if (newHash && newHash !== this.lastHash) {
-          const prev = this.readLocalArchive();
-          this.writeLocalArchive(latest);
+          this.writeLocalArchive(merged);
           this.lastHash = newHash;
-          if (onChanged) onChanged({ previous: prev, next: latest });
+          if (onChanged) onChanged({ previous: prev, next: merged });
         }
       } catch (error) {
         if (onError) onError(error);
