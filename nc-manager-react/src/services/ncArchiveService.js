@@ -1,4 +1,9 @@
-﻿const ARCHIVE_PATH = `${import.meta.env.BASE_URL}data/nc-archivio.json`;
+const ARCHIVE_PATH_CANDIDATES = [
+  "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json",
+  "../nc-archivio.json",
+  "./nc-archivio.json",
+  `${import.meta.env.BASE_URL}data/nc-archivio.json`
+];
 const STORAGE_KEY = "qda_qsw_nc_archive_v1";
 
 function stableStringify(value) {
@@ -49,12 +54,24 @@ class NcArchiveService {
   }
 
   async fetchArchiveFromStatic() {
-    const response = await fetch(`${ARCHIVE_PATH}?t=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    const suffix = `?t=${Date.now()}`;
+    let lastError = null;
+
+    for (const archivePath of ARCHIVE_PATH_CANDIDATES) {
+      try {
+        const response = await fetch(`${archivePath}${suffix}`, { cache: "no-store" });
+        if (!response.ok) {
+          lastError = new Error(`HTTP ${response.status} on ${archivePath}`);
+          continue;
+        }
+        const text = await response.text();
+        return parseArchive(text);
+      } catch (error) {
+        lastError = error;
+      }
     }
-    const text = await response.text();
-    return parseArchive(text);
+
+    throw lastError || new Error("Archivio JSON non trovato");
   }
 
   readLocalArchive() {
@@ -74,16 +91,19 @@ class NcArchiveService {
   }
 
   async loadArchive() {
-    const local = this.readLocalArchive();
-    if (local.length) {
-      this.lastHash = this.getHash(local);
-      return { items: local, source: "local" };
+    try {
+      const remote = await this.fetchArchiveFromStatic();
+      this.writeLocalArchive(remote);
+      this.lastHash = this.getHash(remote);
+      return { items: remote, source: "file" };
+    } catch {
+      const local = this.readLocalArchive();
+      if (local.length) {
+        this.lastHash = this.getHash(local);
+        return { items: local, source: "local" };
+      }
+      throw new Error("Archivio non disponibile");
     }
-
-    const remote = await this.fetchArchiveFromStatic();
-    this.writeLocalArchive(remote);
-    this.lastHash = this.getHash(remote);
-    return { items: remote, source: "file" };
   }
 
   async reloadArchive() {

@@ -43,6 +43,7 @@ jobs:
         run: |
           mkdir -p site/nc-manager-react
           cp -R nc-manager-react/dist/. site/nc-manager-react/
+          cp nc-archivio.json site/nc-archivio.json
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
