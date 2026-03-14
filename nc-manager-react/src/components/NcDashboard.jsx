@@ -137,14 +137,14 @@ export function NcDashboard() {
     try {
       const result = await ncArchiveService.saveArchive(nextItems);
       const suffix = result.persistedToFile ? " (file collegato aggiornato)" : "";
-      const gh = result.persistedToGitHub ? " (GitHub aggiornato)" : "";
       if (result.persistedToGitHub) {
         setGithubSyncAt(new Date().toLocaleString("it-IT"));
       }
       if (result.githubError) {
-        setToast({ type: "warning", message: `${successMessage}${suffix}. GitHub non aggiornato: ${result.githubError}` });
+        setToast({ type: "warning", message: `${successMessage}${suffix}. Ambiente Demo ASI non aggiornato: ${result.githubError}` });
       } else {
-        setToast({ type: "success", message: `${successMessage}${suffix}${gh}` });
+        const ghLabel = result.persistedToGitHub ? " (Ambiente Demo ASI aggiornato)" : "";
+        setToast({ type: "success", message: `${successMessage}${suffix}${ghLabel}` });
       }
       setLastUpdatedAt(new Date().toLocaleString("it-IT"));
     } catch {
@@ -176,14 +176,14 @@ export function NcDashboard() {
 
   const handleConfigureGitHub = () => {
     const current = ncArchiveService.getGitHubToken();
-    const value = window.prompt("Inserisci token GitHub (repo contents write). Vuoto = rimuovi.", current);
+    const value = window.prompt("Inserisci token Ambiente Demo ASI (repo contents write). Vuoto = rimuovi.", current);
     if (value == null) return;
     ncArchiveService.setGitHubToken(value);
     if (!String(value).trim()) {
-      setToast({ type: "warning", message: "Token GitHub rimosso." });
+      setToast({ type: "warning", message: "Token Ambiente Demo ASI rimosso." });
       return;
     }
-    setToast({ type: "success", message: "Token GitHub salvato su questo dispositivo." });
+    setToast({ type: "success", message: "Token Ambiente Demo ASI salvato su questo dispositivo." });
   };
 
   const handlePublishGitHub = async () => {
@@ -191,9 +191,9 @@ export function NcDashboard() {
       await ncArchiveService.publishToGitHub(items);
       const when = new Date().toLocaleString("it-IT");
       setGithubSyncAt(when);
-      setToast({ type: "success", message: "Archivio pubblicato su GitHub." });
+      setToast({ type: "success", message: "Archivio pubblicato su Ambiente Demo ASI." });
     } catch (error) {
-      setToast({ type: "error", message: `Pubblicazione GitHub fallita: ${error?.message || "errore sconosciuto"}` });
+      setToast({ type: "error", message: `Pubblicazione Ambiente Demo ASI fallita: ${error?.message || "errore sconosciuto"}` });
     }
   };
 
@@ -255,7 +255,7 @@ export function NcDashboard() {
           <span className="metric-badge metric-open">Aperte: {stats.aperte}</span>
           <span className="metric-badge">Contesto: ALPAC ITALIA</span>
           <span className="metric-badge">Sorgente: {dataSource}</span>
-          <span className="metric-badge">Sync GitHub: {githubSyncAt}</span>
+          <span className="metric-badge">Sync Ambiente Demo ASI: {githubSyncAt}</span>
           <span className="metric-badge metric-updated">Ultimo aggiornamento: {lastUpdatedAt || "-"}</span>
         </div>
       </header>
