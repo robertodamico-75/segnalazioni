@@ -1,4 +1,5 @@
-﻿import { NC_STATUSES } from "../data/constants";
+import React from "react";
+import { NC_STATUSES } from "../data/constants";
 
 export function NcToolbar({
   filters,

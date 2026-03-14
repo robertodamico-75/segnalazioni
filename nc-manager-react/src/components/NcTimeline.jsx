@@ -1,4 +1,5 @@
-﻿export function NcTimeline({ timeline }) {
+import React from "react";
+export function NcTimeline({ timeline }) {
   const rows = Array.isArray(timeline) ? timeline : [];
 
   return (

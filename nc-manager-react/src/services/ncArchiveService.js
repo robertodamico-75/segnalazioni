@@ -1,4 +1,4 @@
-﻿const ARCHIVE_PATH = "/data/nc-archivio.json";
+﻿const ARCHIVE_PATH = `${import.meta.env.BASE_URL}data/nc-archivio.json`;
 const STORAGE_KEY = "qda_qsw_nc_archive_v1";
 
 function stableStringify(value) {

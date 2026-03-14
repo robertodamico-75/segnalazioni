@@ -1,4 +1,5 @@
-﻿import { PRIORITIES } from "../data/constants";
+import React from "react";
+import { PRIORITIES } from "../data/constants";
 
 const INITIAL_FORM = {
   titolo: "",

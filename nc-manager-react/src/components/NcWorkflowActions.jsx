@@ -1,4 +1,5 @@
-﻿import { getAllowedActions } from "../data/ncFactory";
+import React from "react";
+import { getAllowedActions } from "../data/ncFactory";
 
 export function NcWorkflowActions({ nc, onAction }) {
   const actions = getAllowedActions(nc?.stato);

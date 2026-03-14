@@ -1,4 +1,5 @@
-﻿import { STATUS_META } from "../data/constants";
+import React from "react";
+import { STATUS_META } from "../data/constants";
 
 export function NcCard({ nc, selected, onOpen, highlightType }) {
   const meta = STATUS_META[nc.stato] || STATUS_META.bozza;

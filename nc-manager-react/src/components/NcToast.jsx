@@ -1,4 +1,5 @@
-﻿export function NcToast({ toast, onClose }) {
+import React from "react";
+export function NcToast({ toast, onClose }) {
   if (!toast?.message) return null;
 
   return (

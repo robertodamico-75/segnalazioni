@@ -1,4 +1,5 @@
-﻿import { NcCard } from "./NcCard";
+import React from "react";
+import { NcCard } from "./NcCard";
 
 export function NcList({ items, selectedId, onSelect, highlights }) {
   if (!items.length) {
