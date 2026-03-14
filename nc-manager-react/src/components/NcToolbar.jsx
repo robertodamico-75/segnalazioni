@@ -55,10 +55,10 @@ export function NcToolbar({
           Ricarica archivio
         </button>
         <button className="btn btn-secondary" onClick={onConfigureGitHub}>
-          Token GitHub
+          Token Ambiente Demo ASI
         </button>
         <button className="btn btn-primary" onClick={onPublishGitHub}>
-          Pubblica GitHub
+          Pubblica Ambiente Demo ASI
         </button>
       </div>
     </section>

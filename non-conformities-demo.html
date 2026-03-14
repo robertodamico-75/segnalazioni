@@ -416,7 +416,7 @@
             setGithubSyncAt(new Date().toLocaleString("it-IT"));
             githubOk = true;
           } catch (err) {
-            githubError = String(err?.message || "Pubblicazione GitHub fallita.");
+            githubError = String(err?.message || "Pubblicazione Ambiente Demo ASI fallita.");
           }
         }
         return { githubOk, githubError, hadToken: !!token };
@@ -439,7 +439,7 @@
             return current && current.sha ? current.sha : undefined;
           }
           if (getResp.status !== 404) {
-            throw new Error("Lettura file GitHub fallita (HTTP " + getResp.status + ").");
+            throw new Error("Lettura file Ambiente Demo ASI fallita (HTTP " + getResp.status + ").");
           }
           return undefined;
         };
@@ -467,39 +467,39 @@
           const isShaMismatch = putResp.status === 409 && (txt.includes("does not match") || txt.includes("\"sha\""));
           lastErr = "HTTP " + putResp.status + ": " + txt.slice(0, 180);
           if (!isShaMismatch) {
-            throw new Error("Scrittura GitHub fallita (" + lastErr + ")");
+            throw new Error("Scrittura Ambiente Demo ASI fallita (" + lastErr + ")");
           }
           await wait(180 * attempt);
         }
 
-        throw new Error("Scrittura GitHub retry fallita dopo 5 tentativi: " + lastErr);
+        throw new Error("Scrittura Ambiente Demo ASI retry fallita dopo 5 tentativi: " + lastErr);
       };
 
       const configuraTokenGitHub = () => {
         const attuale = (localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim();
-        const input = prompt("Inserisci GitHub PAT (repo:contents write). Lascia vuoto per rimuovere.", attuale);
+        const input = prompt("Inserisci token Ambiente Demo ASI (repo:contents write). Lascia vuoto per rimuovere.", attuale);
         if (input === null) return;
         const token = String(input || "").trim();
         if (!token) {
           localStorage.removeItem(GITHUB_TOKEN_KEY);
           setGithubTokenSet(false);
-          return mostraAlert("ok", "Token GitHub rimosso.");
+          return mostraAlert("ok", "Token Ambiente Demo ASI rimosso.");
         }
         localStorage.setItem(GITHUB_TOKEN_KEY, token);
         setGithubTokenSet(true);
-        mostraAlert("ok", "Token GitHub salvato su questo dispositivo.");
+        mostraAlert("ok", "Token Ambiente Demo ASI salvato su questo dispositivo.");
       };
 
       const pubblicaArchivioAdesso = async () => {
         try {
           const token = (localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim();
-          if (!token) return mostraAlert("error", "Configura prima il token GitHub.");
+          if (!token) return mostraAlert("error", "Configura prima il token Ambiente Demo ASI.");
           await pubblicaSuGitHub(archivio, token);
           const when = new Date().toLocaleString("it-IT");
           setGithubSyncAt(when);
-          mostraAlert("ok", "Database pubblicato su GitHub.");
+          mostraAlert("ok", "Database pubblicato su Ambiente Demo ASI.");
         } catch (err) {
-          mostraAlert("error", String(err?.message || "Pubblicazione GitHub non riuscita."));
+          mostraAlert("error", String(err?.message || "Pubblicazione Ambiente Demo ASI non riuscita."));
         }
       };
 
@@ -531,9 +531,9 @@
         const mancanti = validaBozza(bozza);
         if (mancanti.length) return mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
         const res = await upsertBozza({ ...bozza });
-        if (res?.hadToken && !res?.githubOk) return mostraAlert("error", "NC salvata in locale, ma GitHub NON aggiornato: " + res.githubError);
-        if (!res?.hadToken) return mostraAlert("ok", "NC salvata in locale. Configura token GitHub per pubblicare online.");
-        mostraAlert("ok", "NC salvata su Database (GitHub aggiornato).");
+        if (res?.hadToken && !res?.githubOk) return mostraAlert("error", "NC salvata in locale, ma Ambiente Demo ASI NON aggiornato: " + res.githubError);
+        if (!res?.hadToken) return mostraAlert("ok", "NC salvata in locale. Configura token Ambiente Demo ASI per pubblicare online.");
+        mostraAlert("ok", "NC salvata su Database (Ambiente Demo ASI aggiornato).");
       };
       const onSubmit = async () => {
         const mancanti = validaBozza(bozza);
@@ -542,9 +542,9 @@
         const inviata = { ...bozza, stato: "Inviata" };
         setBozza(inviata);
         const res = await upsertBozza(inviata);
-        if (res?.hadToken && !res?.githubOk) return mostraAlert("error", "NC inviata in locale, ma GitHub NON aggiornato: " + res.githubError);
-        if (!res?.hadToken) return mostraAlert("ok", "NC inviata in locale. Configura token GitHub per pubblicare online.");
-        mostraAlert("ok", "NC inviata e salvata su Database (GitHub aggiornato).");
+        if (res?.hadToken && !res?.githubOk) return mostraAlert("error", "NC inviata in locale, ma Ambiente Demo ASI NON aggiornato: " + res.githubError);
+        if (!res?.hadToken) return mostraAlert("ok", "NC inviata in locale. Configura token Ambiente Demo ASI per pubblicare online.");
+        mostraAlert("ok", "NC inviata e salvata su Database (Ambiente Demo ASI aggiornato).");
         setVista("menu");
       };
 
@@ -710,13 +710,13 @@
                   <div className="menu-buttons">
                     <button className="btn secondary block" onClick={apriArchivioDaPicker}>Apri Database</button>
                     <button className="btn secondary block" onClick={creaOCollegaArchivio}>Crea / collega Database</button>
-                    <button className="btn secondary block" onClick={configuraTokenGitHub}>Configura token GitHub</button>
-                    <button className="btn primary block" onClick={pubblicaArchivioAdesso}>Pubblica su GitHub</button>
+                    <button className="btn secondary block" onClick={configuraTokenGitHub}>Configura token Ambiente Demo ASI</button>
+                    <button className="btn primary block" onClick={pubblicaArchivioAdesso}>Pubblica su Ambiente Demo ASI</button>
                   </div>
                   <input ref={inputArchivioRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
                   <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px", wordBreak: "break-all" }}>Database: {sorgenteArchivio}</div>
-                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Sync GitHub: {githubSyncAt || "non eseguita"}</div>
-                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Token GitHub: {githubTokenSet ? "configurato" : "mancante"}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Sync Ambiente Demo ASI: {githubSyncAt || "non eseguita"}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Token Ambiente Demo ASI: {githubTokenSet ? "configurato" : "mancante"}</div>
                 </section>
               </>
             )}
