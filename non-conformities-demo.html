@@ -273,7 +273,8 @@
 
     const APP_VERSION = "v2026.03.13.7-react";
     const STORAGE_KEY = "qda_qsw_archivio_v1";
-    const archivioFissoPath = "./nc-archivio.json";
+    const archivioFissoPath = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
+    const archivioFallbackPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
     const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","operatore","dataNc","oraNc","riferimento"];
 
@@ -353,6 +354,7 @@
       const [ncSelezionataId, setNcSelezionataId] = useState(null);
       const [nomeArchivio, setNomeArchivio] = useState(archivioFissoNome);
       const [alert, setAlert] = useState({ tipo: "", msg: "" });
+      const [sorgenteArchivio, setSorgenteArchivio] = useState("localStorage");
 
       const elencoNc = useMemo(() => Object.values(archivio).sort((a, b) => b.id - a.id), [archivio]);
 
@@ -364,7 +366,23 @@
             const testo = await resp.text();
             const loaded = normalizzaArchivio(JSON.parse((testo || "{}").trim() || "{}"));
             setArchivio(loaded);
-          } catch {}
+            setSorgenteArchivio(archivioFissoPath);
+            try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(loaded)); } catch {}
+            return;
+          } catch (errRemote) {
+            try {
+              const respLocal = await fetch(archivioFallbackPath + "?t=" + Date.now(), { cache: "no-store" });
+              if (!respLocal.ok) throw new Error("HTTP " + respLocal.status);
+              const testoLocal = await respLocal.text();
+              const loadedLocal = normalizzaArchivio(JSON.parse((testoLocal || "{}").trim() || "{}"));
+              setArchivio(loadedLocal);
+              setSorgenteArchivio(archivioFallbackPath);
+              try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(loadedLocal)); } catch {}
+              setAlert({ tipo: "error", msg: "Remoto non disponibile, uso file locale." });
+            } catch (errLocal) {
+              setAlert({ tipo: "error", msg: "Errore caricamento Database: " + String(errRemote?.message || errLocal?.message || "sorgente non raggiungibile") });
+            }
+          }
         };
         caricaArchivioFisso();
       }, []);
@@ -602,7 +620,7 @@
                     <button className="btn secondary block" onClick={creaOCollegaArchivio}>Crea / collega Database</button>
                   </div>
                   <input ref={inputArchivioRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
-                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px" }}>Database fisso: {archivioFissoPath}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px", wordBreak: "break-all" }}>Database: {sorgenteArchivio}</div>
                 </section>
               </>
             )}
