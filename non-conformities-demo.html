@@ -6,6 +6,7 @@
   <title>QDA-QSW Track</title>
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="QDA-QSW Track">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <style>
@@ -271,7 +272,7 @@
   <script type="text/babel">
     const { useEffect, useMemo, useRef, useState } = React;
 
-    const APP_VERSION = "v2026.03.13.7-react";
+    const APP_VERSION = "v2026.03.13.20-react";
     const STORAGE_KEY = "qda_qsw_archivio_v1";
     const GITHUB_TOKEN_KEY = "qda_qsw_github_token_v1";
     const archivioFissoPath = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
@@ -341,8 +342,8 @@
     }
 
     function App() {
-      const LOGO_ASI = ["./logo-asi-datamyte.png", "./asi-datamyte.png", "./logo-asi.png", "./asi.png"];
-      const LOGO_ALPAC = ["./logo-alpac.png", "./alpac.png", "./logo_alpac.png", "./ALPAC.png"];
+      const LOGO_ASI = [];
+      const LOGO_ALPAC = [];
 
       const inputArchivioRef = useRef(null);
       const inputFotoRef = useRef(null);
@@ -364,6 +365,7 @@
       const [alert, setAlert] = useState({ tipo: "", msg: "" });
       const [sorgenteArchivio, setSorgenteArchivio] = useState("localStorage");
       const [githubSyncAt, setGithubSyncAt] = useState("");
+      const [githubTokenSet, setGithubTokenSet] = useState(() => !!(localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim());
 
       const elencoNc = useMemo(() => Object.values(archivio).sort((a, b) => b.id - a.id), [archivio]);
 
@@ -416,13 +418,19 @@
           await writable.write(json);
           await writable.close();
         }
+        let githubOk = false;
+        let githubError = "";
         const token = (localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim();
         if (token) {
           try {
             await pubblicaSuGitHub(nextArchivio, token);
             setGithubSyncAt(new Date().toLocaleString("it-IT"));
-          } catch {}
+            githubOk = true;
+          } catch (err) {
+            githubError = String(err?.message || "Pubblicazione GitHub fallita.");
+          }
         }
+        return { githubOk, githubError, hadToken: !!token };
       };
 
       const githubApiUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/contents/${githubRepoPath}`;
@@ -470,9 +478,11 @@
         const token = String(input || "").trim();
         if (!token) {
           localStorage.removeItem(GITHUB_TOKEN_KEY);
+          setGithubTokenSet(false);
           return mostraAlert("ok", "Token GitHub rimosso.");
         }
         localStorage.setItem(GITHUB_TOKEN_KEY, token);
+        setGithubTokenSet(true);
         mostraAlert("ok", "Token GitHub salvato su questo dispositivo.");
       };
 
@@ -510,14 +520,16 @@
         const chiave = String(id);
         const nextArchivio = { ...archivio, [chiave]: { ...ncAggiornata, id } };
         setArchivio(nextArchivio);
-        await salvaArchivio(nextArchivio);
+        return await salvaArchivio(nextArchivio);
       };
 
       const onSalva = async () => {
         const mancanti = validaBozza(bozza);
         if (mancanti.length) return mostraAlert("error", "Compila i campi obbligatori: " + mancanti.join(", "));
-        await upsertBozza({ ...bozza });
-        mostraAlert("ok", "NC salvata su Database.");
+        const res = await upsertBozza({ ...bozza });
+        if (res?.hadToken && !res?.githubOk) return mostraAlert("error", "NC salvata in locale, ma GitHub NON aggiornato: " + res.githubError);
+        if (!res?.hadToken) return mostraAlert("ok", "NC salvata in locale. Configura token GitHub per pubblicare online.");
+        mostraAlert("ok", "NC salvata su Database (GitHub aggiornato).");
       };
       const onSubmit = async () => {
         const mancanti = validaBozza(bozza);
@@ -525,8 +537,10 @@
         if (!confirm("Confermi il submit della NC?")) return;
         const inviata = { ...bozza, stato: "Inviata" };
         setBozza(inviata);
-        await upsertBozza(inviata);
-        mostraAlert("ok", "NC inviata e salvata su Database.");
+        const res = await upsertBozza(inviata);
+        if (res?.hadToken && !res?.githubOk) return mostraAlert("error", "NC inviata in locale, ma GitHub NON aggiornato: " + res.githubError);
+        if (!res?.hadToken) return mostraAlert("ok", "NC inviata in locale. Configura token GitHub per pubblicare online.");
+        mostraAlert("ok", "NC inviata e salvata su Database (GitHub aggiornato).");
         setVista("menu");
       };
 
@@ -676,14 +690,8 @@
                 <section className="panel">
                   <div className="brand-title">QDA-QSW Track</div>
                   <div className="brand-logos">
-                    <div className="logo-chip asi">
-                      <img src={LOGO_ASI[0]} alt="ASI DataMyte Italia" onError={(e) => gestisciFallbackLogo(e, LOGO_ASI)} />
-                      <span style={{ display: "none" }}>ASI DataMyte Italia</span>
-                    </div>
-                    <div className="logo-chip alpac">
-                      <img src={LOGO_ALPAC[0]} alt="ALPAC" onError={(e) => gestisciFallbackLogo(e, LOGO_ALPAC)} />
-                      <span style={{ display: "none" }}>ALPAC</span>
-                    </div>
+                    <div className="logo-chip asi"><span>ASI DataMyte Italia</span></div>
+                    <div className="logo-chip alpac"><span>ALPAC</span></div>
                   </div>
                 </section>
                 <section className="panel">
