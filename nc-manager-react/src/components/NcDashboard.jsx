@@ -34,9 +34,9 @@ export function NcDashboard() {
         setItems(loaded);
         setSelectedId(loaded[0]?.id ?? null);
         setLastUpdatedAt(new Date().toLocaleString("it-IT"));
-      } catch {
+      } catch (error) {
         if (!mounted) return;
-        setToast({ type: "error", message: "Errore nel caricamento archivio NC." });
+        setToast({ type: "error", message: `Errore nel caricamento archivio NC: ${error?.message || "sorgente non raggiungibile"}` });
       }
     };
 
@@ -146,8 +146,8 @@ export function NcDashboard() {
       setSelectedId(next[0]?.id ?? null);
       setLastUpdatedAt(new Date().toLocaleString("it-IT"));
       setToast({ type: "success", message: "Archivio ricaricato correttamente." });
-    } catch {
-      setToast({ type: "error", message: "Impossibile ricaricare archivio." });
+    } catch (error) {
+      setToast({ type: "error", message: `Impossibile ricaricare archivio: ${error?.message || "sorgente non raggiungibile"}` });
     }
   };
 
