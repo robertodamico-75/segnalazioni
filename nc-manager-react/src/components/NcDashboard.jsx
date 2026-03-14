@@ -23,6 +23,7 @@ export function NcDashboard() {
   const [toast, setToast] = useState({ type: "", message: "" });
   const [lastUpdatedAt, setLastUpdatedAt] = useState("");
   const [highlights, setHighlights] = useState({});
+  const [dataSource, setDataSource] = useState("-");
 
   useEffect(() => {
     let mounted = true;
@@ -34,6 +35,8 @@ export function NcDashboard() {
         setItems(loaded);
         setSelectedId(loaded[0]?.id ?? null);
         setLastUpdatedAt(new Date().toLocaleString("it-IT"));
+        setDataSource(ncArchiveService.lastLoadedUrl || "-");
+        setToast({ type: "success", message: `Caricate ${loaded.length} NC da ${ncArchiveService.lastLoadedUrl || "sorgente sconosciuta"}` });
       } catch (error) {
         if (!mounted) return;
         setToast({ type: "error", message: `Errore nel caricamento archivio NC: ${error?.message || "sorgente non raggiungibile"}` });
@@ -53,6 +56,7 @@ export function NcDashboard() {
         setHighlights(marker);
         setItems(next);
         setLastUpdatedAt(new Date().toLocaleString("it-IT"));
+        setDataSource(ncArchiveService.lastLoadedUrl || "-");
         setToast({ type: "success", message: "Archivio NC aggiornato: caricati nuovi dati." });
 
         if (!next.some((x) => x.id === selectedId)) {
@@ -145,7 +149,8 @@ export function NcDashboard() {
       setItems(next);
       setSelectedId(next[0]?.id ?? null);
       setLastUpdatedAt(new Date().toLocaleString("it-IT"));
-      setToast({ type: "success", message: "Archivio ricaricato correttamente." });
+      setDataSource(ncArchiveService.lastLoadedUrl || "-");
+      setToast({ type: "success", message: `Archivio ricaricato: ${next.length} NC da ${ncArchiveService.lastLoadedUrl || "sorgente sconosciuta"}.` });
     } catch (error) {
       setToast({ type: "error", message: `Impossibile ricaricare archivio: ${error?.message || "sorgente non raggiungibile"}` });
     }
@@ -217,6 +222,7 @@ export function NcDashboard() {
           <span className="metric-badge">Totali: {stats.total}</span>
           <span className="metric-badge metric-open">Aperte: {stats.aperte}</span>
           <span className="metric-badge">Contesto: ALPAC ITALIA</span>
+          <span className="metric-badge">Sorgente: {dataSource}</span>
           <span className="metric-badge metric-updated">Ultimo aggiornamento: {lastUpdatedAt || "-"}</span>
         </div>
       </header>

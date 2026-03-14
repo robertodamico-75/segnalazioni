@@ -47,6 +47,7 @@ class NcArchiveService {
     this.fileHandle = null;
     this.lastHash = "";
     this.pollTimer = null;
+    this.lastLoadedUrl = "";
   }
 
   async fetchArchiveFromStatic() {
@@ -61,6 +62,7 @@ class NcArchiveService {
           continue;
         }
         const text = await response.text();
+        this.lastLoadedUrl = archivePath;
         return parseArchive(text);
       } catch (error) {
         lastError = error;
