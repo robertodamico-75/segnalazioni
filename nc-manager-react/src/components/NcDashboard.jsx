@@ -24,6 +24,7 @@ export function NcDashboard() {
   const [lastUpdatedAt, setLastUpdatedAt] = useState("");
   const [highlights, setHighlights] = useState({});
   const [dataSource, setDataSource] = useState("-");
+  const [githubSyncAt, setGithubSyncAt] = useState("-");
 
   useEffect(() => {
     let mounted = true;
@@ -136,7 +137,15 @@ export function NcDashboard() {
     try {
       const result = await ncArchiveService.saveArchive(nextItems);
       const suffix = result.persistedToFile ? " (file collegato aggiornato)" : "";
-      setToast({ type: "success", message: `${successMessage}${suffix}` });
+      const gh = result.persistedToGitHub ? " (GitHub aggiornato)" : "";
+      if (result.persistedToGitHub) {
+        setGithubSyncAt(new Date().toLocaleString("it-IT"));
+      }
+      if (result.githubError) {
+        setToast({ type: "warning", message: `${successMessage}${suffix}. GitHub non aggiornato: ${result.githubError}` });
+      } else {
+        setToast({ type: "success", message: `${successMessage}${suffix}${gh}` });
+      }
       setLastUpdatedAt(new Date().toLocaleString("it-IT"));
     } catch {
       setToast({ type: "error", message: "Salvataggio archivio non riuscito." });
@@ -163,6 +172,29 @@ export function NcDashboard() {
     setShowForm(false);
     setSelectedId(nc.id);
     await persist(next, "Nuova NC creata in bozza.");
+  };
+
+  const handleConfigureGitHub = () => {
+    const current = ncArchiveService.getGitHubToken();
+    const value = window.prompt("Inserisci token GitHub (repo contents write). Vuoto = rimuovi.", current);
+    if (value == null) return;
+    ncArchiveService.setGitHubToken(value);
+    if (!String(value).trim()) {
+      setToast({ type: "warning", message: "Token GitHub rimosso." });
+      return;
+    }
+    setToast({ type: "success", message: "Token GitHub salvato su questo dispositivo." });
+  };
+
+  const handlePublishGitHub = async () => {
+    try {
+      await ncArchiveService.publishToGitHub(items);
+      const when = new Date().toLocaleString("it-IT");
+      setGithubSyncAt(when);
+      setToast({ type: "success", message: "Archivio pubblicato su GitHub." });
+    } catch (error) {
+      setToast({ type: "error", message: `Pubblicazione GitHub fallita: ${error?.message || "errore sconosciuto"}` });
+    }
   };
 
   const handleWorkflowAction = async (action) => {
@@ -223,6 +255,7 @@ export function NcDashboard() {
           <span className="metric-badge metric-open">Aperte: {stats.aperte}</span>
           <span className="metric-badge">Contesto: ALPAC ITALIA</span>
           <span className="metric-badge">Sorgente: {dataSource}</span>
+          <span className="metric-badge">Sync GitHub: {githubSyncAt}</span>
           <span className="metric-badge metric-updated">Ultimo aggiornamento: {lastUpdatedAt || "-"}</span>
         </div>
       </header>
@@ -233,6 +266,8 @@ export function NcDashboard() {
         onCreate={() => setShowForm(true)}
         onReload={handleReload}
         onSortChange={(sortBy) => setFilters((prev) => ({ ...prev, sortBy }))}
+        onConfigureGitHub={handleConfigureGitHub}
+        onPublishGitHub={handlePublishGitHub}
       />
 
       <main className="dashboard-main">

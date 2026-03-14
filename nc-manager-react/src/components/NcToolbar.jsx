@@ -6,7 +6,9 @@ export function NcToolbar({
   onFilterChange,
   onCreate,
   onReload,
-  onSortChange
+  onSortChange,
+  onConfigureGitHub,
+  onPublishGitHub
 }) {
   return (
     <section className="toolbar-card">
@@ -51,6 +53,12 @@ export function NcToolbar({
         </button>
         <button className="btn btn-secondary" onClick={onReload}>
           Ricarica archivio
+        </button>
+        <button className="btn btn-secondary" onClick={onConfigureGitHub}>
+          Token GitHub
+        </button>
+        <button className="btn btn-primary" onClick={onPublishGitHub}>
+          Pubblica GitHub
         </button>
       </div>
     </section>

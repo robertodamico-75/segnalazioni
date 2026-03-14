@@ -273,9 +273,14 @@
 
     const APP_VERSION = "v2026.03.13.7-react";
     const STORAGE_KEY = "qda_qsw_archivio_v1";
+    const GITHUB_TOKEN_KEY = "qda_qsw_github_token_v1";
     const archivioFissoPath = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
     const archivioFallbackPath = "./nc-archivio.json";
     const archivioFissoNome = "nc-archivio.json";
+    const githubRepoOwner = "robertodamico-75";
+    const githubRepoName = "segnalazioni";
+    const githubRepoBranch = "main";
+    const githubRepoPath = "nc-archivio.json";
     const obbligatori = ["titolo","descrizione","categoria","gravita","reparto","operatore","dataNc","oraNc","riferimento"];
 
     const oraAttuale = () => new Date().toTimeString().slice(0, 5);
@@ -331,6 +336,9 @@
     function validaBozza(bozza) {
       return obbligatori.filter(c => !String(bozza[c] || "").trim());
     }
+    function base64Utf8(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
 
     function App() {
       const LOGO_ASI = ["./logo-asi-datamyte.png", "./asi-datamyte.png", "./logo-asi.png", "./asi.png"];
@@ -355,6 +363,7 @@
       const [nomeArchivio, setNomeArchivio] = useState(archivioFissoNome);
       const [alert, setAlert] = useState({ tipo: "", msg: "" });
       const [sorgenteArchivio, setSorgenteArchivio] = useState("localStorage");
+      const [githubSyncAt, setGithubSyncAt] = useState("");
 
       const elencoNc = useMemo(() => Object.values(archivio).sort((a, b) => b.id - a.id), [archivio]);
 
@@ -406,6 +415,77 @@
           const writable = await fileHandleRef.current.createWritable();
           await writable.write(json);
           await writable.close();
+        }
+        const token = (localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim();
+        if (token) {
+          try {
+            await pubblicaSuGitHub(nextArchivio, token);
+            setGithubSyncAt(new Date().toLocaleString("it-IT"));
+          } catch {}
+        }
+      };
+
+      const githubApiUrl = `https://api.github.com/repos/${githubRepoOwner}/${githubRepoName}/contents/${githubRepoPath}`;
+
+      const pubblicaSuGitHub = async (archivioDaPubblicare, token) => {
+        if (!token) throw new Error("Token GitHub mancante.");
+        const headers = {
+          "Accept": "application/vnd.github+json",
+          "Authorization": "Bearer " + token,
+          "X-GitHub-Api-Version": "2022-11-28"
+        };
+
+        let sha = undefined;
+        const getResp = await fetch(githubApiUrl + "?ref=" + encodeURIComponent(githubRepoBranch), { headers });
+        if (getResp.ok) {
+          const current = await getResp.json();
+          sha = current && current.sha ? current.sha : undefined;
+        } else if (getResp.status !== 404) {
+          throw new Error("Lettura file GitHub fallita (HTTP " + getResp.status + ").");
+        }
+
+        const content = base64Utf8(serializzaArchivio(archivioDaPubblicare));
+        const body = {
+          message: "Aggiornamento NC da non-conformities-demo",
+          content,
+          branch: githubRepoBranch
+        };
+        if (sha) body.sha = sha;
+
+        const putResp = await fetch(githubApiUrl, {
+          method: "PUT",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        if (!putResp.ok) {
+          const txt = await putResp.text();
+          throw new Error("Scrittura GitHub fallita (HTTP " + putResp.status + "): " + txt.slice(0, 160));
+        }
+      };
+
+      const configuraTokenGitHub = () => {
+        const attuale = (localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim();
+        const input = prompt("Inserisci GitHub PAT (repo:contents write). Lascia vuoto per rimuovere.", attuale);
+        if (input === null) return;
+        const token = String(input || "").trim();
+        if (!token) {
+          localStorage.removeItem(GITHUB_TOKEN_KEY);
+          return mostraAlert("ok", "Token GitHub rimosso.");
+        }
+        localStorage.setItem(GITHUB_TOKEN_KEY, token);
+        mostraAlert("ok", "Token GitHub salvato su questo dispositivo.");
+      };
+
+      const pubblicaArchivioAdesso = async () => {
+        try {
+          const token = (localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim();
+          if (!token) return mostraAlert("error", "Configura prima il token GitHub.");
+          await pubblicaSuGitHub(archivio, token);
+          const when = new Date().toLocaleString("it-IT");
+          setGithubSyncAt(when);
+          mostraAlert("ok", "Database pubblicato su GitHub.");
+        } catch (err) {
+          mostraAlert("error", String(err?.message || "Pubblicazione GitHub non riuscita."));
         }
       };
 
@@ -618,9 +698,12 @@
                   <div className="menu-buttons">
                     <button className="btn secondary block" onClick={apriArchivioDaPicker}>Apri Database</button>
                     <button className="btn secondary block" onClick={creaOCollegaArchivio}>Crea / collega Database</button>
+                    <button className="btn secondary block" onClick={configuraTokenGitHub}>Configura token GitHub</button>
+                    <button className="btn primary block" onClick={pubblicaArchivioAdesso}>Pubblica su GitHub</button>
                   </div>
                   <input ref={inputArchivioRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
                   <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px", wordBreak: "break-all" }}>Database: {sorgenteArchivio}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Sync GitHub: {githubSyncAt || "non eseguita"}</div>
                 </section>
               </>
             )}
