@@ -272,8 +272,7 @@
   <script type="text/babel">
     const { useEffect, useMemo, useRef, useState } = React;
 
-    const APP_VERSION = "v2026.03.13.22-react";
-    const STORAGE_KEY = "qda_qsw_archivio_v1";
+    const APP_VERSION = "v2026.03.13.25-react";
     const GITHUB_TOKEN_KEY = "qda_qsw_github_token_v1";
     const archivioFissoPath = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
     const archivioFallbackPath = "./nc-archivio.json";
@@ -331,13 +330,6 @@
       Object.keys(archivio || {}).sort((a, b) => Number(a) - Number(b)).forEach(k => { ordered[k] = archivio[k]; });
       return JSON.stringify(ordered, null, 2);
     }
-    function unisciArchivi(remoto, locale) {
-      const merged = { ...(remoto || {}) };
-      Object.keys(locale || {}).forEach((k) => {
-        merged[String(k)] = locale[k];
-      });
-      return merged;
-    }
     function prossimoId(archivio) {
       return Object.values(archivio || {}).reduce((max, x) => Math.max(max, Number(x.id) || 0), 0) + 1;
     }
@@ -358,19 +350,12 @@
       const fileHandleRef = useRef(null);
 
       const [vista, setVista] = useState("menu");
-      const [archivio, setArchivio] = useState(() => {
-        try {
-          const testo = localStorage.getItem(STORAGE_KEY);
-          return testo ? normalizzaArchivio(JSON.parse(testo)) : {};
-        } catch {
-          return {};
-        }
-      });
+      const [archivio, setArchivio] = useState({});
       const [bozza, setBozza] = useState(() => modelloVuoto(1));
       const [ncSelezionataId, setNcSelezionataId] = useState(null);
       const [nomeArchivio, setNomeArchivio] = useState(archivioFissoNome);
       const [alert, setAlert] = useState({ tipo: "", msg: "" });
-      const [sorgenteArchivio, setSorgenteArchivio] = useState("localStorage");
+      const [sorgenteArchivio, setSorgenteArchivio] = useState("-");
       const [githubSyncAt, setGithubSyncAt] = useState("");
       const [githubTokenSet, setGithubTokenSet] = useState(() => !!(localStorage.getItem(GITHUB_TOKEN_KEY) || "").trim());
 
@@ -378,20 +363,13 @@
 
       useEffect(() => {
         const caricaArchivioFisso = async () => {
-          let locale = {};
-          try {
-            const testoLocale = localStorage.getItem(STORAGE_KEY);
-            locale = testoLocale ? normalizzaArchivio(JSON.parse(testoLocale)) : {};
-          } catch {}
           try {
             const resp = await fetch(archivioFissoPath + "?t=" + Date.now(), { cache: "no-store" });
             if (!resp.ok) throw new Error("HTTP " + resp.status);
             const testo = await resp.text();
             const loaded = normalizzaArchivio(JSON.parse((testo || "{}").trim() || "{}"));
-            const merged = unisciArchivi(loaded, locale);
-            setArchivio(merged);
+            setArchivio(loaded);
             setSorgenteArchivio(archivioFissoPath);
-            try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(merged)); } catch {}
             return;
           } catch (errRemote) {
             try {
@@ -399,19 +377,11 @@
               if (!respLocal.ok) throw new Error("HTTP " + respLocal.status);
               const testoLocal = await respLocal.text();
               const loadedLocal = normalizzaArchivio(JSON.parse((testoLocal || "{}").trim() || "{}"));
-              const mergedLocal = unisciArchivi(loadedLocal, locale);
-              setArchivio(mergedLocal);
+              setArchivio(loadedLocal);
               setSorgenteArchivio(archivioFallbackPath);
-              try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(mergedLocal)); } catch {}
               setAlert({ tipo: "error", msg: "Remoto non disponibile, uso file locale." });
             } catch (errLocal) {
-              if (Object.keys(locale).length) {
-                setArchivio(locale);
-                setSorgenteArchivio("localStorage");
-                setAlert({ tipo: "error", msg: "Remoto non raggiungibile: uso dati locali non sincronizzati." });
-              } else {
-                setAlert({ tipo: "error", msg: "Errore caricamento Database: " + String(errRemote?.message || errLocal?.message || "sorgente non raggiungibile") });
-              }
+              setAlert({ tipo: "error", msg: "Errore caricamento Database: " + String(errRemote?.message || errLocal?.message || "sorgente non raggiungibile") });
             }
           }
         };
@@ -432,7 +402,6 @@
 
       const salvaArchivio = async (nextArchivio) => {
         const json = serializzaArchivio(nextArchivio);
-        try { localStorage.setItem(STORAGE_KEY, json); } catch {}
         if (fileHandleRef.current && window.showSaveFilePicker) {
           const writable = await fileHandleRef.current.createWritable();
           await writable.write(json);
@@ -463,32 +432,52 @@
           "X-GitHub-Api-Version": "2022-11-28"
         };
 
-        let sha = undefined;
-        const getResp = await fetch(githubApiUrl + "?ref=" + encodeURIComponent(githubRepoBranch), { headers });
-        if (getResp.ok) {
-          const current = await getResp.json();
-          sha = current && current.sha ? current.sha : undefined;
-        } else if (getResp.status !== 404) {
-          throw new Error("Lettura file GitHub fallita (HTTP " + getResp.status + ").");
-        }
-
-        const content = base64Utf8(serializzaArchivio(archivioDaPubblicare));
-        const body = {
-          message: "Aggiornamento NC da non-conformities-demo",
-          content,
-          branch: githubRepoBranch
+        const leggiShaCorrente = async () => {
+          const getResp = await fetch(githubApiUrl + "?ref=" + encodeURIComponent(githubRepoBranch), { headers });
+          if (getResp.ok) {
+            const current = await getResp.json();
+            return current && current.sha ? current.sha : undefined;
+          }
+          if (getResp.status !== 404) {
+            throw new Error("Lettura file GitHub fallita (HTTP " + getResp.status + ").");
+          }
+          return undefined;
         };
-        if (sha) body.sha = sha;
 
-        const putResp = await fetch(githubApiUrl, {
-          method: "PUT",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-        if (!putResp.ok) {
+        const salvaConSha = async (sha) => {
+          const content = base64Utf8(serializzaArchivio(archivioDaPubblicare));
+          const body = {
+            message: "Aggiornamento NC da non-conformities-demo",
+            content,
+            branch: githubRepoBranch
+          };
+          if (sha) body.sha = sha;
+
+          const putResp = await fetch(githubApiUrl, {
+            method: "PUT",
+            headers: { ...headers, "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          if (putResp.ok) return;
           const txt = await putResp.text();
+          const isShaMismatch = txt.includes("does not match") || txt.includes("\"sha\"");
+          if (isShaMismatch) {
+            const freshSha = await leggiShaCorrente();
+            const retryBody = { ...body, sha: freshSha };
+            const retryResp = await fetch(githubApiUrl, {
+              method: "PUT",
+              headers: { ...headers, "Content-Type": "application/json" },
+              body: JSON.stringify(retryBody)
+            });
+            if (retryResp.ok) return;
+            const retryTxt = await retryResp.text();
+            throw new Error("Scrittura GitHub retry fallita (HTTP " + retryResp.status + "): " + retryTxt.slice(0, 160));
+          }
           throw new Error("Scrittura GitHub fallita (HTTP " + putResp.status + "): " + txt.slice(0, 160));
-        }
+        };
+
+        const sha = await leggiShaCorrente();
+        await salvaConSha(sha);
       };
 
       const configuraTokenGitHub = () => {

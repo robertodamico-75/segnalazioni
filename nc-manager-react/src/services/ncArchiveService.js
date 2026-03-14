@@ -1,6 +1,5 @@
 const SHARED_ARCHIVE_ABS = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
 const ARCHIVE_PATH_CANDIDATES = [SHARED_ARCHIVE_ABS];
-const STORAGE_KEY = "qda_qsw_nc_archive_v1";
 const GITHUB_TOKEN_KEY = "qda_qsw_github_token_v1";
 const GITHUB_OWNER = "robertodamico-75";
 const GITHUB_REPO = "segnalazioni";
@@ -48,17 +47,6 @@ function toObjectById(items) {
   return out;
 }
 
-function mergeArchives(remoteItems, localItems) {
-  const merged = toObjectById(remoteItems || []);
-  (localItems || []).forEach((item) => {
-    if (!item?.id) return;
-    merged[String(item.id)] = item;
-  });
-  return Object.keys(merged)
-    .sort((a, b) => Number(a) - Number(b))
-    .map((key) => merged[key]);
-}
-
 function base64Utf8(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
@@ -94,50 +82,28 @@ class NcArchiveService {
   }
 
   readLocalArchive() {
-    try {
-      return parseArchive(localStorage.getItem(STORAGE_KEY));
-    } catch {
-      return [];
-    }
+    return [];
   }
 
-  writeLocalArchive(items) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items, null, 2));
-  }
+  writeLocalArchive() {}
 
   getHash(items) {
     return stableStringify(toObjectById(items));
   }
 
   async loadArchive() {
-    try {
-      const remote = await this.fetchArchiveFromStatic();
-      const local = this.readLocalArchive();
-      const merged = mergeArchives(remote, local);
-      this.writeLocalArchive(merged);
-      this.lastHash = this.getHash(merged);
-      return { items: merged, source: "file" };
-    } catch {
-      const local = this.readLocalArchive();
-      if (local.length) {
-        this.lastHash = this.getHash(local);
-        return { items: local, source: "local" };
-      }
-      throw new Error("Archivio non disponibile");
-    }
+    const remote = await this.fetchArchiveFromStatic();
+    this.lastHash = this.getHash(remote);
+    return { items: remote, source: "file" };
   }
 
   async reloadArchive() {
     const remote = await this.fetchArchiveFromStatic();
-    const local = this.readLocalArchive();
-    const merged = mergeArchives(remote, local);
-    this.writeLocalArchive(merged);
-    this.lastHash = this.getHash(merged);
-    return merged;
+    this.lastHash = this.getHash(remote);
+    return remote;
   }
 
   async saveArchive(items) {
-    this.writeLocalArchive(items);
     this.lastHash = this.getHash(items);
     let persistedToGitHub = false;
     let githubError = "";
@@ -177,7 +143,6 @@ class NcArchiveService {
     const file = await handle.getFile();
     const text = await file.text();
     const items = parseArchive(text);
-    this.writeLocalArchive(items);
     this.lastHash = this.getHash(items);
     return items;
   }
@@ -187,13 +152,10 @@ class NcArchiveService {
     this.pollTimer = window.setInterval(async () => {
       try {
         const latest = await this.fetchArchiveFromStatic();
-        const prev = this.readLocalArchive();
-        const merged = mergeArchives(latest, prev);
-        const newHash = this.getHash(merged);
+        const newHash = this.getHash(latest);
         if (newHash && newHash !== this.lastHash) {
-          this.writeLocalArchive(merged);
           this.lastHash = newHash;
-          if (onChanged) onChanged({ previous: prev, next: merged });
+          if (onChanged) onChanged({ previous: [], next: latest });
         }
       } catch (error) {
         if (onError) onError(error);
@@ -234,31 +196,53 @@ class NcArchiveService {
       "X-GitHub-Api-Version": "2022-11-28"
     };
 
-    let sha;
-    const getResp = await fetch(`${GITHUB_API_URL}?ref=${encodeURIComponent(GITHUB_BRANCH)}`, { headers });
-    if (getResp.ok) {
-      const current = await getResp.json();
-      sha = current?.sha;
-    } else if (getResp.status !== 404) {
-      throw new Error(`Lettura GitHub fallita (HTTP ${getResp.status})`);
-    }
-
-    const body = {
-      message: "Aggiornamento nc-archivio da nc-manager-react",
-      content: base64Utf8(JSON.stringify(toObjectById(items), null, 2)),
-      branch: GITHUB_BRANCH
+    const readCurrentSha = async () => {
+      const getResp = await fetch(`${GITHUB_API_URL}?ref=${encodeURIComponent(GITHUB_BRANCH)}`, { headers });
+      if (getResp.ok) {
+        const current = await getResp.json();
+        return current?.sha;
+      }
+      if (getResp.status !== 404) {
+        throw new Error(`Lettura GitHub fallita (HTTP ${getResp.status})`);
+      }
+      return undefined;
     };
-    if (sha) body.sha = sha;
 
-    const putResp = await fetch(GITHUB_API_URL, {
-      method: "PUT",
-      headers: { ...headers, "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    if (!putResp.ok) {
+    const putWithSha = async (sha) => {
+      const body = {
+        message: "Aggiornamento nc-archivio da nc-manager-react",
+        content: base64Utf8(JSON.stringify(toObjectById(items), null, 2)),
+        branch: GITHUB_BRANCH
+      };
+      if (sha) body.sha = sha;
+
+      const putResp = await fetch(GITHUB_API_URL, {
+        method: "PUT",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (putResp.ok) return;
+
       const details = await putResp.text();
+      const isShaMismatch = details.includes("does not match") || details.includes("\"sha\"");
+      if (isShaMismatch) {
+        const freshSha = await readCurrentSha();
+        const retryBody = { ...body, sha: freshSha };
+        const retryResp = await fetch(GITHUB_API_URL, {
+          method: "PUT",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify(retryBody)
+        });
+        if (retryResp.ok) return;
+        const retryDetails = await retryResp.text();
+        throw new Error(`Scrittura GitHub retry fallita (HTTP ${retryResp.status}): ${retryDetails.slice(0, 160)}`);
+      }
+
       throw new Error(`Scrittura GitHub fallita (HTTP ${putResp.status}): ${details.slice(0, 160)}`);
-    }
+    };
+
+    const sha = await readCurrentSha();
+    await putWithSha(sha);
   }
 }
 
