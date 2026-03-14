@@ -4,16 +4,25 @@ import { PRIORITIES } from "../data/constants";
 const INITIAL_FORM = {
   titolo: "",
   descrizione: "",
+  categoria: "",
+  gravita: "Bassa",
   reparto: "",
+  luogo: "",
+  operatore: "",
+  dataNc: "",
+  oraNc: "",
+  riferimento: "",
+  note: "",
+  gpsCoord: "",
+  osservazioniText: "",
+  immaginiText: "",
   priorita: "media",
   severita: "media",
   segnalatoDa: "",
   assegnatoA: "",
-  categoria: "",
   tipoNonConformita: "",
   prodotto: "",
-  lotto: "",
-  noteIniziali: ""
+  lotto: ""
 };
 
 export function NcFormModal({ open, onClose, onSubmit }) {
@@ -23,6 +32,16 @@ export function NcFormModal({ open, onClose, onSubmit }) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const payload = Object.fromEntries(formData.entries());
+    payload.osservazioni = String(payload.osservazioniText || "")
+      .split(/\r?\n/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+    payload.immagini = String(payload.immaginiText || "")
+      .split(/\r?\n|,/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+    payload.segnalatoDa = payload.segnalatoDa || payload.operatore || "";
+    payload.noteIniziali = payload.note || "";
     onSubmit(payload);
   };
 
@@ -47,49 +66,55 @@ export function NcFormModal({ open, onClose, onSubmit }) {
 
           <div className="field-grid two">
             <div className="field-group">
-              <label>Reparto *</label>
-              <input name="reparto" defaultValue={INITIAL_FORM.reparto} required />
-            </div>
-            <div className="field-group">
-              <label>Priorita *</label>
-              <select name="priorita" defaultValue={INITIAL_FORM.priorita}>
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field-group">
-              <label>Severita *</label>
-              <select name="severita" defaultValue={INITIAL_FORM.severita}>
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-            <div className="field-group">
-              <label>Segnalato da *</label>
-              <input name="segnalatoDa" defaultValue={INITIAL_FORM.segnalatoDa} required />
-            </div>
-
-            <div className="field-group">
-              <label>Assegnato a *</label>
-              <input name="assegnatoA" defaultValue={INITIAL_FORM.assegnatoA} required />
-            </div>
-            <div className="field-group">
-              <label>Categoria *</label>
+              <label>Famiglia prodotto ALPAC *</label>
               <select name="categoria" defaultValue={INITIAL_FORM.categoria} required>
-                <option value="">Seleziona categoria</option>
+                <option value="">Seleziona</option>
                 <option value="Sistemi posa">Sistemi posa</option>
                 <option value="Monoblocco">Monoblocco</option>
                 <option value="Controtelaio">Controtelaio</option>
                 <option value="Cassonetto">Cassonetto</option>
-                <option value="Accessori foro finestra">Accessori foro finestra</option>
+                <option value="Altro">Altro</option>
               </select>
             </div>
-
             <div className="field-group">
-              <label>Tipo non conformita *</label>
+              <label>Gravita *</label>
+              <select name="gravita" defaultValue={INITIAL_FORM.gravita} required>
+                <option value="Bassa">Bassa</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+                <option value="Critica">Critica</option>
+              </select>
+            </div>
+            <div className="field-group">
+              <label>Cantiere / Cliente *</label>
+              <input name="reparto" defaultValue={INITIAL_FORM.reparto} required />
+            </div>
+            <div className="field-group">
+              <label>Posizione geografica (indirizzo)</label>
+              <input name="luogo" defaultValue={INITIAL_FORM.luogo} />
+            </div>
+            <div className="field-group">
+              <label>Operatore / Segnalatore *</label>
+              <input name="operatore" defaultValue={INITIAL_FORM.operatore} required />
+            </div>
+            <div className="field-group">
+              <label>Data *</label>
+              <input name="dataNc" type="date" defaultValue={INITIAL_FORM.dataNc} required />
+            </div>
+            <div className="field-group">
+              <label>Ora *</label>
+              <input name="oraNc" type="time" defaultValue={INITIAL_FORM.oraNc} required />
+            </div>
+            <div className="field-group">
+              <label>Numero ordine / commessa *</label>
+              <input name="riferimento" defaultValue={INITIAL_FORM.riferimento} required />
+            </div>
+            <div className="field-group">
+              <label>Coordinate GPS</label>
+              <input name="gpsCoord" defaultValue={INITIAL_FORM.gpsCoord} />
+            </div>
+            <div className="field-group">
+              <label>Tipo non conformita</label>
               <select name="tipoNonConformita" defaultValue={INITIAL_FORM.tipoNonConformita} required>
                 <option value="">Seleziona tipo NC</option>
                 <option value="Posa">Posa</option>
@@ -115,11 +140,45 @@ export function NcFormModal({ open, onClose, onSubmit }) {
               <label>Lotto *</label>
               <input name="lotto" defaultValue={INITIAL_FORM.lotto} required />
             </div>
+            <div className="field-group">
+              <label>Assegnato a</label>
+              <input name="assegnatoA" defaultValue={INITIAL_FORM.assegnatoA} />
+            </div>
+            <div className="field-group">
+              <label>Priorita workflow</label>
+              <select name="priorita" defaultValue={INITIAL_FORM.priorita}>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field-group">
+              <label>Severita workflow</label>
+              <select name="severita" defaultValue={INITIAL_FORM.severita}>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field-group">
+              <label>Segnalato da</label>
+              <input name="segnalatoDa" defaultValue={INITIAL_FORM.segnalatoDa} />
+            </div>
           </div>
 
           <div className="field-group field-grow">
-            <label>Note iniziali</label>
-            <textarea name="noteIniziali" defaultValue={INITIAL_FORM.noteIniziali} />
+            <label>Note aggiuntive</label>
+            <textarea name="note" defaultValue={INITIAL_FORM.note} />
+          </div>
+
+          <div className="field-group field-grow">
+            <label>Osservazioni aggiuntive (una riga per voce)</label>
+            <textarea name="osservazioniText" defaultValue={INITIAL_FORM.osservazioniText} />
+          </div>
+
+          <div className="field-group field-grow">
+            <label>Immagini (URL/base64 separate da virgola o nuova riga)</label>
+            <textarea name="immaginiText" defaultValue={INITIAL_FORM.immaginiText} />
           </div>
 
           <footer className="modal-actions">

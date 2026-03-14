@@ -12,6 +12,21 @@ function Row({ label, value }) {
   );
 }
 
+function normalizeImages(nc, seg) {
+  const fromRoot = Array.isArray(nc?.immagini) ? nc.immagini : [];
+  const fromSeg = Array.isArray(seg?.immagini) ? seg.immagini : [];
+  const out = fromRoot.length ? fromRoot : fromSeg;
+  return out
+    .map((item) => {
+      if (typeof item === "string") return { src: item, label: "immagine" };
+      if (item && typeof item === "object") {
+        return { src: item.src || item.url || "", label: item.nome || item.name || "immagine" };
+      }
+      return { src: "", label: "immagine" };
+    })
+    .filter((x) => x.src);
+}
+
 export function NcDetail({ nc, onWorkflowAction }) {
   if (!nc) {
     return (
@@ -25,6 +40,8 @@ export function NcDetail({ nc, onWorkflowAction }) {
   const statusMeta = STATUS_META[nc.stato] || STATUS_META.bozza;
   const seg = nc.segnalazione || {};
   const qsw = nc.qdaqswTrack || {};
+  const immagini = normalizeImages(nc, seg);
+  const osservazioni = Array.isArray(nc.osservazioni) ? nc.osservazioni : [];
 
   return (
     <section className="detail-panel">
@@ -35,6 +52,35 @@ export function NcDetail({ nc, onWorkflowAction }) {
         </div>
         <span className={`status-badge ${statusMeta.className}`}>{statusMeta.label}</span>
       </header>
+
+      <details className="detail-block" open>
+        <summary>Campi Non Conformita (telefono)</summary>
+        <div className="detail-grid two">
+          <Row label="Problema riscontrato" value={nc.titolo} />
+          <Row label="Descrizione tecnica problema" value={nc.descrizione} />
+          <Row label="Famiglia prodotto ALPAC" value={nc.categoria || seg.categoria} />
+          <Row label="Severita" value={nc.gravita || nc.severita} />
+          <Row label="Cantiere / Cliente" value={nc.reparto} />
+          <Row label="Posizione geografica (indirizzo)" value={nc.luogo || seg.luogoRilevazione} />
+          <Row label="Operatore / Segnalatore" value={nc.operatore || seg.segnalatoDa || nc.creatoDa} />
+          <Row label="Stato pratica" value={nc.stato} />
+          <Row label="Data" value={nc.dataNc} />
+          <Row label="Ora" value={nc.oraNc} />
+          <Row label="Numero ordine / commessa" value={nc.riferimento || seg.riferimentoDocumento} />
+          <Row label="Coordinate GPS" value={nc.gpsCoord} />
+          <Row label="Note aggiuntive" value={nc.note || seg.noteOperatore} />
+          <Row label="Osservazioni aggiuntive" value={osservazioni.join(" | ")} />
+        </div>
+        <div className="image-gallery">
+          {!immagini.length && <p className="muted">Nessuna immagine.</p>}
+          {immagini.map((img, idx) => (
+            <figure className="image-card" key={`${img.src}-${idx}`}>
+              <img src={img.src} alt={img.label || `Immagine ${idx + 1}`} loading="lazy" />
+              <figcaption>{img.label || `Immagine ${idx + 1}`}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </details>
 
       <details className="detail-block" open>
         <summary>Anagrafica NC</summary>

@@ -17,6 +17,11 @@ export function generateNcCode(id) {
 export function createNcFromForm(form, nextId) {
   const now = new Date();
   const nowDateTime = formatDateTime(now);
+  const immagini = Array.isArray(form.immagini) ? form.immagini : [];
+  const osservazioni = Array.isArray(form.osservazioni) ? form.osservazioni : [];
+  const operatore = form.operatore || form.segnalatoDa || "";
+  const gravita = form.gravita || form.severita || "Media";
+
   return {
     id: nextId,
     codiceNC: generateNcCode(nextId),
@@ -27,6 +32,17 @@ export function createNcFromForm(form, nextId) {
     severita: form.severita,
     origine: "campo",
     reparto: form.reparto,
+    categoria: form.categoria || "",
+    gravita,
+    luogo: form.luogo || "",
+    operatore,
+    dataNc: form.dataNc || nowDateTime.slice(0, 10),
+    oraNc: form.oraNc || nowDateTime.slice(11, 16),
+    riferimento: form.riferimento || "",
+    note: form.note || "",
+    gpsCoord: form.gpsCoord || "",
+    osservazioni,
+    immagini,
     linea: "",
     prodotto: form.prodotto,
     lotto: form.lotto,
@@ -40,17 +56,17 @@ export function createNcFromForm(form, nextId) {
     assegnatoA: form.assegnatoA,
     segnalazione: {
       dataSegnalazione: nowDateTime,
-      segnalatoDa: form.segnalatoDa,
-      luogoRilevazione: "",
+      segnalatoDa: operatore,
+      luogoRilevazione: form.luogo || "",
       tipoNonConformita: form.tipoNonConformita,
-      categoria: form.categoria,
+      categoria: form.categoria || "",
       descrizioneDettagliata: form.descrizione,
       quantitaCoinvolta: "",
       unitaMisura: "",
-      riferimentoDocumento: "",
+      riferimentoDocumento: form.riferimento || "",
       allegati: [],
-      immagini: [],
-      noteOperatore: form.noteIniziali
+      immagini,
+      noteOperatore: form.noteIniziali || form.note || ""
     },
     qdaqswTrack: {
       codiceTracciamento: `QSW-${String(nextId).padStart(6, "0")}`,
@@ -63,11 +79,11 @@ export function createNcFromForm(form, nextId) {
       limiteMin: "",
       limiteMax: "",
       strumentoMisura: "",
-      operatore: form.segnalatoDa,
+      operatore,
       macchina: "",
       turno: "",
       dataOraEvento: nowDateTime,
-      noteTecniche: form.noteIniziali,
+      noteTecniche: form.noteIniziali || form.note || "",
       riferimentoControlloCollegato: "",
       riferimentoAuditChecklist: "",
       idEsterno: ""
@@ -81,11 +97,11 @@ export function createNcFromForm(form, nextId) {
     timeline: [
       {
         dataOra: nowDateTime,
-        utente: form.segnalatoDa || "Sistema",
+        utente: operatore || "Sistema",
         azione: "creazione",
         statoPrecedente: "-",
         statoNuovo: "bozza",
-        nota: form.noteIniziali || "NC creata"
+        nota: form.noteIniziali || form.note || "NC creata"
       }
     ]
   };
