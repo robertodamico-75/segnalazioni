@@ -272,7 +272,7 @@
   <script type="text/babel">
     const { useEffect, useMemo, useRef, useState } = React;
 
-    const APP_VERSION = "v2026.03.13.20-react";
+    const APP_VERSION = "v2026.03.13.21-react";
     const STORAGE_KEY = "qda_qsw_archivio_v1";
     const GITHUB_TOKEN_KEY = "qda_qsw_github_token_v1";
     const archivioFissoPath = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
@@ -331,6 +331,13 @@
       Object.keys(archivio || {}).sort((a, b) => Number(a) - Number(b)).forEach(k => { ordered[k] = archivio[k]; });
       return JSON.stringify(ordered, null, 2);
     }
+    function unisciArchivi(remoto, locale) {
+      const merged = { ...(remoto || {}) };
+      Object.keys(locale || {}).forEach((k) => {
+        merged[String(k)] = locale[k];
+      });
+      return merged;
+    }
     function prossimoId(archivio) {
       return Object.values(archivio || {}).reduce((max, x) => Math.max(max, Number(x.id) || 0), 0) + 1;
     }
@@ -371,14 +378,20 @@
 
       useEffect(() => {
         const caricaArchivioFisso = async () => {
+          let locale = {};
+          try {
+            const testoLocale = localStorage.getItem(STORAGE_KEY);
+            locale = testoLocale ? normalizzaArchivio(JSON.parse(testoLocale)) : {};
+          } catch {}
           try {
             const resp = await fetch(archivioFissoPath + "?t=" + Date.now(), { cache: "no-store" });
             if (!resp.ok) throw new Error("HTTP " + resp.status);
             const testo = await resp.text();
             const loaded = normalizzaArchivio(JSON.parse((testo || "{}").trim() || "{}"));
-            setArchivio(loaded);
+            const merged = unisciArchivi(loaded, locale);
+            setArchivio(merged);
             setSorgenteArchivio(archivioFissoPath);
-            try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(loaded)); } catch {}
+            try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(merged)); } catch {}
             return;
           } catch (errRemote) {
             try {
@@ -386,12 +399,19 @@
               if (!respLocal.ok) throw new Error("HTTP " + respLocal.status);
               const testoLocal = await respLocal.text();
               const loadedLocal = normalizzaArchivio(JSON.parse((testoLocal || "{}").trim() || "{}"));
-              setArchivio(loadedLocal);
+              const mergedLocal = unisciArchivi(loadedLocal, locale);
+              setArchivio(mergedLocal);
               setSorgenteArchivio(archivioFallbackPath);
-              try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(loadedLocal)); } catch {}
+              try { localStorage.setItem(STORAGE_KEY, serializzaArchivio(mergedLocal)); } catch {}
               setAlert({ tipo: "error", msg: "Remoto non disponibile, uso file locale." });
             } catch (errLocal) {
-              setAlert({ tipo: "error", msg: "Errore caricamento Database: " + String(errRemote?.message || errLocal?.message || "sorgente non raggiungibile") });
+              if (Object.keys(locale).length) {
+                setArchivio(locale);
+                setSorgenteArchivio("localStorage");
+                setAlert({ tipo: "error", msg: "Remoto non raggiungibile: uso dati locali non sincronizzati." });
+              } else {
+                setAlert({ tipo: "error", msg: "Errore caricamento Database: " + String(errRemote?.message || errLocal?.message || "sorgente non raggiungibile") });
+              }
             }
           }
         };
@@ -712,6 +732,7 @@
                   <input ref={inputArchivioRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
                   <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "8px", wordBreak: "break-all" }}>Database: {sorgenteArchivio}</div>
                   <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Sync GitHub: {githubSyncAt || "non eseguita"}</div>
+                  <div style={{ fontSize: "0.8rem", color: "#4f6278", marginTop: "4px" }}>Token GitHub: {githubTokenSet ? "configurato" : "mancante"}</div>
                 </section>
               </>
             )}

@@ -48,6 +48,17 @@ function toObjectById(items) {
   return out;
 }
 
+function mergeArchives(remoteItems, localItems) {
+  const merged = toObjectById(remoteItems || []);
+  (localItems || []).forEach((item) => {
+    if (!item?.id) return;
+    merged[String(item.id)] = item;
+  });
+  return Object.keys(merged)
+    .sort((a, b) => Number(a) - Number(b))
+    .map((key) => merged[key]);
+}
+
 function base64Utf8(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
@@ -101,19 +112,28 @@ class NcArchiveService {
   async loadArchive() {
     try {
       const remote = await this.fetchArchiveFromStatic();
-      this.writeLocalArchive(remote);
-      this.lastHash = this.getHash(remote);
-      return { items: remote, source: "file" };
+      const local = this.readLocalArchive();
+      const merged = mergeArchives(remote, local);
+      this.writeLocalArchive(merged);
+      this.lastHash = this.getHash(merged);
+      return { items: merged, source: "file" };
     } catch {
+      const local = this.readLocalArchive();
+      if (local.length) {
+        this.lastHash = this.getHash(local);
+        return { items: local, source: "local" };
+      }
       throw new Error("Archivio non disponibile");
     }
   }
 
   async reloadArchive() {
     const remote = await this.fetchArchiveFromStatic();
-    this.writeLocalArchive(remote);
-    this.lastHash = this.getHash(remote);
-    return remote;
+    const local = this.readLocalArchive();
+    const merged = mergeArchives(remote, local);
+    this.writeLocalArchive(merged);
+    this.lastHash = this.getHash(merged);
+    return merged;
   }
 
   async saveArchive(items) {
@@ -168,11 +188,12 @@ class NcArchiveService {
       try {
         const latest = await this.fetchArchiveFromStatic();
         const prev = this.readLocalArchive();
-        const newHash = this.getHash(latest);
+        const merged = mergeArchives(latest, prev);
+        const newHash = this.getHash(merged);
         if (newHash && newHash !== this.lastHash) {
-          this.writeLocalArchive(latest);
+          this.writeLocalArchive(merged);
           this.lastHash = newHash;
-          if (onChanged) onChanged({ previous: prev, next: latest });
+          if (onChanged) onChanged({ previous: prev, next: merged });
         }
       } catch (error) {
         if (onError) onError(error);
