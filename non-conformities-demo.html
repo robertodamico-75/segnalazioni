@@ -272,7 +272,7 @@
   <script type="text/babel">
     const { useEffect, useMemo, useRef, useState } = React;
 
-    const APP_VERSION = "v2026.03.13.25-react";
+    const APP_VERSION = "v2026.03.13.26-react";
     const GITHUB_TOKEN_KEY = "qda_qsw_github_token_v1";
     const archivioFissoPath = "https://robertodamico-75.github.io/segnalazioni/nc-archivio.json";
     const archivioFallbackPath = "./nc-archivio.json";
@@ -444,11 +444,14 @@
           return undefined;
         };
 
-        const salvaConSha = async (sha) => {
-          const content = base64Utf8(serializzaArchivio(archivioDaPubblicare));
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        let lastErr = "";
+
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          const sha = await leggiShaCorrente();
           const body = {
             message: "Aggiornamento NC da non-conformities-demo",
-            content,
+            content: base64Utf8(serializzaArchivio(archivioDaPubblicare)),
             branch: githubRepoBranch
           };
           if (sha) body.sha = sha;
@@ -459,25 +462,17 @@
             body: JSON.stringify(body)
           });
           if (putResp.ok) return;
-          const txt = await putResp.text();
-          const isShaMismatch = txt.includes("does not match") || txt.includes("\"sha\"");
-          if (isShaMismatch) {
-            const freshSha = await leggiShaCorrente();
-            const retryBody = { ...body, sha: freshSha };
-            const retryResp = await fetch(githubApiUrl, {
-              method: "PUT",
-              headers: { ...headers, "Content-Type": "application/json" },
-              body: JSON.stringify(retryBody)
-            });
-            if (retryResp.ok) return;
-            const retryTxt = await retryResp.text();
-            throw new Error("Scrittura GitHub retry fallita (HTTP " + retryResp.status + "): " + retryTxt.slice(0, 160));
-          }
-          throw new Error("Scrittura GitHub fallita (HTTP " + putResp.status + "): " + txt.slice(0, 160));
-        };
 
-        const sha = await leggiShaCorrente();
-        await salvaConSha(sha);
+          const txt = await putResp.text();
+          const isShaMismatch = putResp.status === 409 && (txt.includes("does not match") || txt.includes("\"sha\""));
+          lastErr = "HTTP " + putResp.status + ": " + txt.slice(0, 180);
+          if (!isShaMismatch) {
+            throw new Error("Scrittura GitHub fallita (" + lastErr + ")");
+          }
+          await wait(180 * attempt);
+        }
+
+        throw new Error("Scrittura GitHub retry fallita dopo 5 tentativi: " + lastErr);
       };
 
       const configuraTokenGitHub = () => {

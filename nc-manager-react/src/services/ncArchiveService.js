@@ -208,7 +208,11 @@ class NcArchiveService {
       return undefined;
     };
 
-    const putWithSha = async (sha) => {
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    let lastErr = "";
+
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      const sha = await readCurrentSha();
       const body = {
         message: "Aggiornamento nc-archivio da nc-manager-react",
         content: base64Utf8(JSON.stringify(toObjectById(items), null, 2)),
@@ -224,25 +228,15 @@ class NcArchiveService {
       if (putResp.ok) return;
 
       const details = await putResp.text();
-      const isShaMismatch = details.includes("does not match") || details.includes("\"sha\"");
-      if (isShaMismatch) {
-        const freshSha = await readCurrentSha();
-        const retryBody = { ...body, sha: freshSha };
-        const retryResp = await fetch(GITHUB_API_URL, {
-          method: "PUT",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify(retryBody)
-        });
-        if (retryResp.ok) return;
-        const retryDetails = await retryResp.text();
-        throw new Error(`Scrittura GitHub retry fallita (HTTP ${retryResp.status}): ${retryDetails.slice(0, 160)}`);
+      const isShaMismatch = putResp.status === 409 && (details.includes("does not match") || details.includes("\"sha\""));
+      lastErr = `HTTP ${putResp.status}: ${details.slice(0, 180)}`;
+      if (!isShaMismatch) {
+        throw new Error(`Scrittura GitHub fallita (${lastErr})`);
       }
+      await wait(180 * attempt);
+    }
 
-      throw new Error(`Scrittura GitHub fallita (HTTP ${putResp.status}): ${details.slice(0, 160)}`);
-    };
-
-    const sha = await readCurrentSha();
-    await putWithSha(sha);
+    throw new Error(`Scrittura GitHub retry fallita dopo 5 tentativi: ${lastErr}`);
   }
 }
 
