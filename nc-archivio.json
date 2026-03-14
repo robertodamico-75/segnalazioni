@@ -16,5 +16,23 @@
     "gpsCoord": "",
     "osservazioni": [],
     "immagini": []
+  },
+  "2": {
+    "id": 2,
+    "titolo": "a",
+    "descrizione": "a",
+    "categoria": "Sistemi posa",
+    "gravita": "Bassa",
+    "reparto": "a",
+    "luogo": "",
+    "operatore": "a",
+    "stato": "Inviata",
+    "dataNc": "2026-03-14",
+    "oraNc": "14:54",
+    "riferimento": "a",
+    "note": "",
+    "gpsCoord": "",
+    "osservazioni": [],
+    "immagini": []
   }
 }
